@@ -32,9 +32,9 @@ export const electionService = {
 	calculateResults: async () => {
 		const result: Record<number, number> = {};
 
-        for (const vote of votes) {
-            result[vote.candidateId] = (result[vote.candidateId] || 0) + 1;
-        }
+		for (const vote of votes) {
+			result[vote.candidateId] = (result[vote.candidateId] || 0) + 1;
+		}
 
 		return result;
 	},

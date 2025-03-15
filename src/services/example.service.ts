@@ -26,7 +26,7 @@ export const electionService = {
 
 	processVote: async (voteData: Vote) => {
 		votes.push(voteData);
-		return { success: true, message: "Vote recorded", voteId: Date.now() };
+		return { message: "Vote recorded", voteId: Date.now() };
 	},
 
 	calculateResults: async () => {

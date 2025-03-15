@@ -1,0 +1,17 @@
+{
+  "name": "api-smovidya-election",
+  "scripts": {
+    "dev": "wrangler dev",
+    "format": "biome format --write ./src",
+    "lint": "biome lint ./src",
+    "deploy": "wrangler deploy --minify"
+  },
+  "dependencies": {
+    "hono": "^4.7.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "wrangler": "^3.109.2"
+  }
+}

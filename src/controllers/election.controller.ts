@@ -1,6 +1,6 @@
 import type { ControllerContext } from "../utils/types";
 import { authService } from "../services/auth.service";
-import { electionService } from '../services/example.service';
+import { electionService } from "../services/example.service";
 
 export const electionController = {
 	getCandidates: async (c: ControllerContext) => {
@@ -14,24 +14,30 @@ export const electionController = {
 	},
 
 	submitVote: async (c: ControllerContext) => {
-		const { googleIdToken } = c.req.valid('param')
-		const result = await authService.getStudentId(googleIdToken)
+		const { googleIdToken } = c.req.valid("param");
+		const result = await authService.getStudentId(googleIdToken);
 
 		if (!result.ok) {
-			return c.json({
-				success: false,
-				message: result.error,
-			}, 401)
+			return c.json(
+				{
+					success: false,
+					message: result.error,
+				},
+				401,
+			);
 		}
 
 		const voterStudentId = result.value;
 
 		// TODO: Implement vote submission
 
-		return c.json({
-			success: true,
-			message: "Vote submitted successfully",
-		}, 200)
+		return c.json(
+			{
+				success: true,
+				message: "Vote submitted successfully",
+			},
+			200,
+		);
 	},
 
 	getResults: async (c: ControllerContext) => {

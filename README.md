@@ -7,6 +7,13 @@ bun install
 bun run dev
 ```
 
+There are two version of API Documentation:
+- OpenAPI: http://localhost:8787/spec.json
+- Scalar (reccommended): http://localhost:8787/reference
+- Swagger: http://localhost:8787/swagger
+
+These are also available on the production site with the same path.
+
 ## Deployment
 
 We use Cloudflare workers to deploy the site.

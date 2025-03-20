@@ -5,7 +5,8 @@
     "format": "biome format --write ./src",
     "lint": "biome lint ./src",
     "deploy": "wrangler deploy --minify",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:excute": "wrangler d1 execute DB"
   },
   "dependencies": {
     "firebase-auth-cloudflare-workers": "^2.0.6",
@@ -15,6 +16,6 @@
     "@biomejs/biome": "1.9.4",
     "@cloudflare/workers-types": "^4.20250214.0",
     "husky": "^9.1.7",
-    "wrangler": "^3.109.2"
+    "wrangler": "4"
   }
 }

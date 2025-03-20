@@ -2,7 +2,16 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api-smovidya-election",
   "main": "src/index.ts",
-  "compatibility_date": "2025-03-15"
+  "compatibility_date": "2025-03-15",
+  "d1_databases": [
+    // This is just a test
+    // TODO: Replace with production database_id
+    {
+      "binding": "DB",
+      "database_name": "smovidya-election-2025",
+      "database_id": "fbb23f82-4feb-4bfa-8208-98cc7a6bb8f2"
+    }
+  ]
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
@@ -19,13 +28,6 @@
   //   {
   //     "binding": "MY_BUCKET",
   //     "bucket_name": "my-bucket"
-  //   }
-  // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
   //   }
   // ],
   // "ai": {

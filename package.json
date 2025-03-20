@@ -9,6 +9,7 @@
     "db:excute": "wrangler d1 execute DB"
   },
   "dependencies": {
+    "@hono/swagger-ui": "^0.5.1",
     "firebase-auth-cloudflare-workers": "^2.0.6",
     "hono": "^4.7.4"
   },

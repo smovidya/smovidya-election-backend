@@ -4,7 +4,6 @@ import { electionService } from "../services/example.service";
 export const electionController = {
 	getCandidates: async (c: ControllerContext) => {
 		const candidates = await electionService.getCandidates();
-		c.env.DB;
 		return c.json(
 			{
 				data: candidates,

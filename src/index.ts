@@ -1,8 +1,11 @@
 import { Hono } from "hono";
-import { electionRoutes } from "./routes/example.route";
+import { swaggerUI } from "@hono/swagger-ui";
 
-const app = new Hono();
+// Routes
+import { electionRoutes } from "./routes/election.route";
 
-app.route("/example", electionRoutes);
+const app = new Hono<{ Bindings: Env }>();
+
+app.route("/api", electionRoutes).get("/spec", swaggerUI({ url: "/api" }));
 
 export default app;

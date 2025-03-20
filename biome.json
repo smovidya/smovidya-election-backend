@@ -8,7 +8,7 @@
 	"files": {
 		"ignoreUnknown": false,
 		"ignore": [
-			"src/types.d.ts"
+			"src/cf-types.d.ts"
 		]
 	},
 	"formatter": {

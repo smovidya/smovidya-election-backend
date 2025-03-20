@@ -1,9 +1,10 @@
-import type { Context } from "hono";
+import type { ControllerContext } from "../utils/types";
 import { electionService } from "../services/example.service";
 
 export const electionController = {
-	getCandidates: async (c: Context) => {
+	getCandidates: async (c: ControllerContext) => {
 		const candidates = await electionService.getCandidates();
+		c.env.DB;
 		return c.json(
 			{
 				data: candidates,
@@ -12,13 +13,13 @@ export const electionController = {
 		);
 	},
 
-	submitVote: async (c: Context) => {
+	submitVote: async (c: ControllerContext) => {
 		const voteData = await c.req.json();
 		const result = await electionService.processVote(voteData);
 		return c.json(result, 201);
 	},
 
-	getResults: async (c: Context) => {
+	getResults: async (c: ControllerContext) => {
 		const results = await electionService.calculateResults();
 		return c.json(
 			{

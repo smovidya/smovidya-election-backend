@@ -1,7 +1,7 @@
 import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
 // firebase-admin wont run on cf worker so i use this instead
-import { err, ok, type Result, wrapAsync } from "../utils/result";
 import { env } from "cloudflare:workers";
+import { err, ok, type Result, ResultAsync } from "neverthrow";
 import { z } from "zod";
 
 class NoKVStore implements KeyStorer {
@@ -27,8 +27,11 @@ export const authService = {
 			// WorkersKVStoreSingle.getOrInitialize(env.PUBLIC_JWK_CACHE_KEY, env.PUBLIC_JWK_CACHE_KV)
 		);
 
-		const token = await wrapAsync(() => auth.verifyIdToken(idToken));
-		if (!token.ok) {
+		const token = await ResultAsync.fromPromise(
+			auth.verifyIdToken(idToken),
+			() => "",
+		);
+		if (token.isErr()) {
 			return err("invalid-token");
 		}
 

@@ -49,7 +49,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 		const { googleIdToken, votes } = c.req.valid("param");
 		const result = await authService.getStudentId(googleIdToken);
 
-		if (!result.ok) {
+		if (!result.isOk()) {
 			return c.json(
 				{
 					success: false,

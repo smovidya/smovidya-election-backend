@@ -3,6 +3,41 @@ import { authErrorSchema } from "../services/auth.service";
 import { eligibilityErrorSchema } from "../services/eligibility.service";
 import { createErrorResponseSchema } from "../utils/api";
 
+const item = (value: string, description: string) => ({
+	const: value,
+	description,
+});
+
+export const positionSchema = z
+	.enum([
+		"president",
+		"vice-president-1",
+		"vice-president-2",
+		"secretary",
+		"treasurer", // เหรัญญิก ???
+		// TODO: get better name
+		"student-affairs",
+		"academic",
+		"public-service",
+		"art",
+		"sport",
+	])
+	.openapi({
+		description: "The position the candidate is running for",
+		oneOf: [
+			item("president", "นายกสโมสร"),
+			item("vice-president-1", "อุปนายกคนที่ 1"),
+			item("vice-president-2", "อุปนายกคนที่ 2"),
+			item("secretary", "เลขานุการ"),
+			item("treasurer", "เหรัญญิก"),
+			item("student-affairs", "ประธานฝ่ายนิสิตสัมพันธ์"),
+			item("academic", "ประธานฝ่ายวิชาการ"),
+			item("public-service", "ประธานฝ่ายพัฒนาสังคมและบำเพ็ญประโยชน์"),
+			item("art", "ประธานฝ่ายศิลปะและวัฒนธรรม"),
+			item("sport", "ประธานฝ่ายกีฬา"),
+		],
+	});
+
 export const voteSchema = z
 	.object({
 		candidateId: z
@@ -13,17 +48,7 @@ export const voteSchema = z
 					'The student ID of the candidate or "no-vote" (cast no vote when multiple candidate) or "disapprove (when there is only one candidate)',
 				examples: [1234567823, "no-vote", "disapprove"],
 			}),
-		position: z.string().openapi({
-			description: "The position the candidate is running for",
-			examples: [
-				"President",
-				"Vice President",
-				"Secretary",
-				"Treasurer",
-				"Auditor",
-				"P.R.O.",
-			],
-		}),
+		position: positionSchema,
 	})
 	.openapi("Vote");
 
@@ -92,6 +117,7 @@ export const queryEligibilityResponseSchema = z.discriminatedUnion("success", [
 	queryEligibilityResponseErrorSchema,
 ]);
 
+export type Position = z.infer<typeof positionSchema>;
 export type Vote = z.infer<typeof voteSchema>;
 export type SubmitVote = z.infer<typeof submitVoteSchema>;
 export type SubmitVoteResponse = z.infer<typeof submitVoteResponseSchema>;

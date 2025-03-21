@@ -1,5 +1,4 @@
 import { err, ok } from "neverthrow";
-import { electionModel } from "../models/election.model";
 import { z } from "zod";
 import { electionInfo } from "../constants";
 

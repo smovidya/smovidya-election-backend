@@ -18,7 +18,7 @@ export const eligibilityService = {
 		}
 
 		// xxxxxxxx23 for science students
-		if (/^\d{8}23$/.test(voterId)) {
+		if (!/^\d{8}23$/.test(voterId)) {
 			return err("ineligible-not-science-student");
 		}
 

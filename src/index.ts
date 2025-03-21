@@ -1,8 +1,10 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { env } from "cloudflare:workers";
 import { swaggerUI } from "@hono/swagger-ui";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 
 // Routes
+import { devRoutes } from "./routes/dev.route";
 import { electionRoutes } from "./routes/election.route";
 
 const app = new OpenAPIHono<{ Bindings: Env }>();
@@ -27,5 +29,9 @@ app
 			url: "/spec.json",
 		}),
 	);
+
+if (env.ENVIRONMENT === "dev") {
+	app.route("/dev", devRoutes)
+}
 
 export default app;

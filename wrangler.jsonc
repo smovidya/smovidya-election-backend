@@ -16,8 +16,15 @@
   //   "nodejs_compat"
   // ],
   "vars": {
-    "FIREBASE_PROJECT_ID": "smovidya-election"
+    "ENVIRONMENT": "dev",
   },
+  "env": {
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production"
+      }
+    }
+  }
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",

@@ -48,6 +48,7 @@ export const submitVoteResponseOkSchema = z.object({
 export const submitVoteErrorSchema = z.enum([
 	"invalid-body",
 	...authErrorSchema.options,
+	...eligibilityErrorSchema.options,
 ]);
 
 export const submitVoteResponseErrorSchema = z.object({
@@ -62,7 +63,12 @@ export const submitVoteResponseSchema = z.discriminatedUnion("success", [
 ]);
 
 export const queryEligibilitySchema = z.object({
-	googleIdToken: googleIdTokenSchema,
+	googleIdToken: googleIdTokenSchema.openapi({
+		param: {
+			name: "googleIdToken",
+			in: "path",
+		},
+	}),
 });
 
 export const queryEligibilityResponseOkSchema = z.object({

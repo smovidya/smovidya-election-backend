@@ -22,7 +22,18 @@ We use Cloudflare workers to deploy the site.
 bun run deploy
 ```
 
-## Database
+### Environment Variables
+put this into `.dev.vars` at the root directory
+```conf
+FIREBASE_API_KEY=""
+FIREBASE_AUTH_DOMAIN=""
+FIREBASE_PROJECT_ID=""
+FIREBASE_STORAGE_BUCKET=""
+FIREBASE_MESSAGING_SERVICE_ID=""
+FIREBASE_APP_ID=""
+```
+
+### Database
 
 To getting started with the database, seed the database with the following command:
 

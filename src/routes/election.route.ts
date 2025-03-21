@@ -47,5 +47,30 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 			},
 		},
 	}),
-	electionController.submitVote,
+	async (c) => {
+		const { googleIdToken, votes } = c.req.valid("param");
+		const result = await authService.getStudentId(googleIdToken);
+
+		if (!result.ok) {
+			return c.json(
+				{
+					success: false,
+					message: result.error,
+				},
+				401,
+			);
+		}
+
+		const voterStudentId = result.value;
+
+		// TODO: Implement vote submission
+
+		return c.json(
+			{
+				success: true,
+				message: "Vote submitted successfully",
+			},
+			200,
+		);
+	},
 );

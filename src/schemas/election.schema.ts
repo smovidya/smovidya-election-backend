@@ -34,3 +34,6 @@ export const submitVoteResponseSchema = z.object({
 	success: z.boolean(),
 	message: z.string(),
 });
+
+export type Vote = z.infer<typeof voteSchema>;
+export type SubmitVote = z.infer<typeof submitVoteSchema>;

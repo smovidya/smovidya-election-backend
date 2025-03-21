@@ -6,7 +6,8 @@
     "lint": "biome lint ./src",
     "deploy": "wrangler deploy --minify",
     "prepare": "husky",
-    "db:excute": "wrangler d1 execute DB"
+    "db:excute": "wrangler d1 execute DB",
+    "type:gen": "wrangler types ./src/cf-types.d.ts"
   },
   "dependencies": {
     "@hono/swagger-ui": "^0.5.1",

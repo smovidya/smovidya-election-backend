@@ -1,9 +1,7 @@
 import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
 import { err, ok, type Result, wrapAsync } from "../utils/result";
+import { env } from "cloudflare:workers";
 // firebase-admin wont run on cf worker so i use this instead
-
-// TODO: get firebase credentials
-const projectId = "asdhgjh";
 
 class NoKVStore implements KeyStorer {
 	async get() {
@@ -17,7 +15,7 @@ export type AuthError = "user-not-found" | "not-chula" | "invalid-token";
 export const authService = {
 	async getStudentId(idToken: string): Promise<Result<string, AuthError>> {
 		const auth = Auth.getOrInitialize(
-			projectId,
+			env.FIREBASE_PROJECT_ID,
 			new NoKVStore(),
 			// if we want to cache the public key used to verify the Firebase ID we can use this
 			// WorkersKVStoreSingle.getOrInitialize(env.PUBLIC_JWK_CACHE_KEY, env.PUBLIC_JWK_CACHE_KV)

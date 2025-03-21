@@ -11,13 +11,13 @@
       "database_name": "smovidya-election-2025",
       "database_id": "fbb23f82-4feb-4bfa-8208-98cc7a6bb8f2"
     }
-  ]
+  ],
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "smovidya-election"
+  },
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",

@@ -1,15 +1,12 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
 	submitVoteResponseErrorSchema,
 	submitVoteResponseOkSchema,
 	submitVoteSchema,
 } from "../schemas/election.schema";
 import { authService } from "../services/auth.service";
-
-// export const electionRoutes = new Hono<{ Bindings: Env }>()
-// 	.post("/vote", electionController.submitVote)
-// 	.get("/candidates", electionController.getCandidates)
-// 	.get("/results", electionController.getResults);
+import { eligibilityService } from "../services/eligibility.service";
+import { electionModel } from "../models/election.model";
 
 export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 	createRoute({
@@ -49,26 +46,71 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 					},
 				},
 			},
+			403: {
+				description: "Forbidden",
+				content: {
+					"application/json": {
+						schema: submitVoteResponseErrorSchema,
+					},
+				},
+			},
+			500: {
+				description: "Internal Server Error",
+				content: {
+					"application/json": {
+						schema: submitVoteResponseErrorSchema,
+					},
+				},
+			},
 		},
 	}),
 	async (c) => {
 		const { googleIdToken, votes } = c.req.valid("json");
-		const result = await authService.getStudentId(googleIdToken);
+		const authResult = await authService.getStudentId(googleIdToken);
 
-		if (!result.isOk()) {
+		if (!authResult.isOk()) {
 			return c.json(
 				{
 					success: false,
-					code: result.error,
-					message: "TODO: better error message",
+					code: authResult.error,
+					message: "Unauthorized",
 				} as const,
 				401,
 			);
 		}
 
-		const voterStudentId = result.value;
+		const voterStudentId = authResult.value;
 
-		// TODO: Implement vote submission
+		const isEligible = await eligibilityService.isEligible({
+			voterId: voterStudentId,
+		});
+
+		if (isEligible.isErr()) {
+			return c.json(
+				{
+					success: false,
+					code: isEligible.error,
+					message: "Ineligible",
+				} as const,
+				403,
+			);
+		}
+
+		const voteResult = await electionModel.addVotes({
+			voterId: voterStudentId,
+			votes,
+		});
+
+		if (voteResult.isErr()) {
+			return c.json(
+				{
+					success: false,
+					code: voteResult.error,
+					message: "Internal Error",
+				} as const,
+				500,
+			);
+		}
 
 		return c.json(
 			{

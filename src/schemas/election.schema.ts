@@ -1,5 +1,6 @@
 import { z } from "@hono/zod-openapi";
 import { authErrorSchema } from "../services/auth.service";
+import { eligibilityErrorSchema } from "../services/eligibility.service";
 
 export const voteSchema = z
 	.object({
@@ -42,7 +43,9 @@ export const submitVoteResponseOkSchema = z.object({
 export const submitVoteErrorSchema = z.enum([
 	"invalid-body",
 	...authErrorSchema.options,
+	...eligibilityErrorSchema.options,
 ]);
+
 export const submitVoteResponseErrorSchema = z.object({
 	success: z.literal(false),
 	code: submitVoteErrorSchema,

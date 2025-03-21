@@ -39,7 +39,10 @@ export const submitVoteResponseOkSchema = z.object({
 	message: z.string(),
 });
 
-export const submitVoteErrorSchema = z.enum([...authErrorSchema.options]);
+export const submitVoteErrorSchema = z.enum([
+	"invalid-body",
+	...authErrorSchema.options,
+]);
 export const submitVoteResponseErrorSchema = z.object({
 	success: z.literal(false),
 	code: submitVoteErrorSchema,

@@ -54,7 +54,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 				{
 					success: false,
 					code: result.error,
-					message: "result.error",
+					message: "TODO: better error message",
 				} as const,
 				401,
 			);
@@ -71,5 +71,18 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 			} as const,
 			200,
 		);
+	},
+	// see https://github.com/honojs/middleware/tree/main/packages/zod-openapi#handling-validation-errors
+	(result, c) => {
+		if (!result.success) {
+			return c.json(
+				{
+					success: false,
+					code: "invalid-body",
+					message: "Validation Error",
+				} as const,
+				400,
+			);
+		}
 	},
 );

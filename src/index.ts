@@ -31,7 +31,7 @@ app
 	);
 
 if (env.ENVIRONMENT === "dev") {
-	app.route("/dev", devRoutes)
+	app.route("/dev", devRoutes);
 }
 
 export default app;

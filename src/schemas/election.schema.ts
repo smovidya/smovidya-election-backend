@@ -26,11 +26,14 @@ export const voteSchema = z
 	})
 	.openapi("Vote");
 
-export const googleIdTokenSchema = z.string().openapi({
-	description:
-		"The Google ID token of the voter from Firebase Authentication",
-	examples: ["eyJhbGciOi...ZjY4NzUxZjIwZjI4"],
-}).openapi("GoogleIdToken");
+export const googleIdTokenSchema = z
+	.string()
+	.openapi({
+		description:
+			"The Google ID token of the voter from Firebase Authentication",
+		examples: ["eyJhbGciOi...ZjY4NzUxZjIwZjI4"],
+	})
+	.openapi("GoogleIdToken");
 
 export const submitVoteSchema = z.object({
 	googleIdToken: googleIdTokenSchema,

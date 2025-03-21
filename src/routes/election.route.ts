@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
-	queryEligibilityErrorSchema,
 	queryEligibilityResponseErrorSchema,
 	queryEligibilityResponseOkSchema,
 	queryEligibilitySchema,
@@ -8,8 +7,8 @@ import {
 	submitVoteResponseOkSchema,
 	submitVoteSchema,
 } from "../schemas/election.schema";
-import { authService } from "../services/auth.service";
-import { eligibilityService } from "../services/eligibility.service";
+import { authErrorSchema, authService } from "../services/auth.service";
+import { eligibilityErrorSchema, eligibilityService } from "../services/eligibility.service";
 import { electionModel } from "../models/election.model";
 
 export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
@@ -142,15 +141,9 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 	.openapi(
 		createRoute({
 			method: "get",
-			path: "/eligibility",
+			path: "/eligibility/{googleIdToken}",
 			request: {
-				body: {
-					content: {
-						"application/json": {
-							schema: queryEligibilitySchema,
-						},
-					},
-				},
+				params: queryEligibilitySchema,
 			},
 			responses: {
 				200: {
@@ -173,7 +166,13 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 					description: "Unauthorized",
 					content: {
 						"application/json": {
-							schema: queryEligibilityResponseErrorSchema,
+							schema: z.object({
+								success: z.literal(false),
+								code: z.enum([
+									...authErrorSchema.options
+								]),
+								message: z.string(),
+							}),
 						},
 					},
 				},
@@ -181,22 +180,20 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 					description: "Forbidden",
 					content: {
 						"application/json": {
-							schema: queryEligibilityResponseErrorSchema,
+							schema: z.object({
+								success: z.literal(false),
+								code: z.enum([
+									...eligibilityErrorSchema.options
+								]),
+								message: z.string(),
+							}),
 						},
 					},
-				},
-				500: {
-					description: "Internal Server Error",
-					content: {
-						"application/json": {
-							schema: queryEligibilityResponseErrorSchema,
-						},
-					},
-				},
-			},
+				}
+			}
 		}),
 		async (c) => {
-			const { googleIdToken } = c.req.valid("json");
+			const { googleIdToken } = c.req.valid("param");
 			const authResult = await authService.getStudentId(googleIdToken);
 
 			if (!authResult.isOk()) {
@@ -230,7 +227,6 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 			return c.json(
 				{
 					success: true,
-					eligible: isEligible.value,
 				} as const,
 				200,
 			);

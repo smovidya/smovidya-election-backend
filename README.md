@@ -14,15 +14,7 @@ There are two version of API Documentation:
 
 These are also available on the production site with the same path.
 
-## Deployment
-
-We use Cloudflare workers to deploy the site.
-
-```sh
-bun run deploy
-```
-
-### Environment Variables
+## Environment Variables
 put this into `.dev.vars` at the root directory
 ```conf
 FIREBASE_API_KEY=""
@@ -31,6 +23,14 @@ FIREBASE_PROJECT_ID=""
 FIREBASE_STORAGE_BUCKET=""
 FIREBASE_MESSAGING_SERVICE_ID=""
 FIREBASE_APP_ID=""
+```
+
+## Deployment
+
+We use Cloudflare workers to deploy the site.
+
+```sh
+bun run deploy
 ```
 
 ### Database

@@ -16,7 +16,13 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 		method: "post",
 		path: "/vote",
 		request: {
-			params: submitVoteSchema,
+			body: {
+				content: {
+					"application/json": {
+						schema: submitVoteSchema,
+					},
+				},
+			},
 		},
 		responses: {
 			200: {
@@ -46,7 +52,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 		},
 	}),
 	async (c) => {
-		const { googleIdToken, votes } = c.req.valid("param");
+		const { googleIdToken, votes } = c.req.valid("json");
 		const result = await authService.getStudentId(googleIdToken);
 
 		if (!result.isOk()) {

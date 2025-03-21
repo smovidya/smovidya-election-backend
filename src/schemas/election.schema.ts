@@ -26,12 +26,14 @@ export const voteSchema = z
 	})
 	.openapi("Vote");
 
+export const googleIdTokenSchema = z.string().openapi({
+	description:
+		"The Google ID token of the voter from Firebase Authentication",
+	examples: ["eyJhbGciOi...ZjY4NzUxZjIwZjI4"],
+}).openapi("GoogleIdToken");
+
 export const submitVoteSchema = z.object({
-	googleIdToken: z.string().openapi({
-		description:
-			"The Google ID token of the voter from Firebase Authentication",
-		examples: ["eyJhbGciOi...ZjY4NzUxZjIwZjI4"],
-	}),
+	googleIdToken: googleIdTokenSchema,
 	votes: z.array(voteSchema),
 });
 
@@ -43,7 +45,6 @@ export const submitVoteResponseOkSchema = z.object({
 export const submitVoteErrorSchema = z.enum([
 	"invalid-body",
 	...authErrorSchema.options,
-	...eligibilityErrorSchema.options,
 ]);
 
 export const submitVoteResponseErrorSchema = z.object({
@@ -55,6 +56,34 @@ export const submitVoteResponseErrorSchema = z.object({
 export const submitVoteResponseSchema = z.discriminatedUnion("success", [
 	submitVoteResponseOkSchema,
 	submitVoteResponseErrorSchema,
+]);
+
+export const queryEligibilitySchema = z.object({
+	googleIdToken: googleIdTokenSchema,
+});
+
+export const queryEligibilityResponseOkSchema = z.object({
+	success: z.literal(true),
+	eligible: z.boolean().openapi({
+		description: "Whether the voter is eligible to vote",
+	}),
+});
+
+export const queryEligibilityErrorSchema = z.enum([
+	"invalid-body",
+	...authErrorSchema.options,
+	...eligibilityErrorSchema.options,
+]);
+
+export const queryEligibilityResponseErrorSchema = z.object({
+	success: z.literal(false),
+	code: queryEligibilityErrorSchema,
+	message: z.string(),
+});
+
+export const queryEligibilityResponseSchema = z.discriminatedUnion("success", [
+	queryEligibilityResponseOkSchema,
+	queryEligibilityResponseErrorSchema,
 ]);
 
 export type Vote = z.infer<typeof voteSchema>;

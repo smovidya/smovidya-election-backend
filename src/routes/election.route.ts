@@ -1,5 +1,9 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+	queryEligibilityErrorSchema,
+	queryEligibilityResponseErrorSchema,
+	queryEligibilityResponseOkSchema,
+	queryEligibilitySchema,
 	submitVoteResponseErrorSchema,
 	submitVoteResponseOkSchema,
 	submitVoteSchema,
@@ -133,4 +137,111 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>().openapi(
 			);
 		}
 	},
-);
+).openapi(
+	createRoute({
+		method: "get",
+		path: "/eligibility",
+		request: {
+			body: {
+				content: {
+					"application/json": {
+						schema: queryEligibilitySchema
+					}
+				}
+			},
+		},
+		responses: {
+			200: {
+				description: "Success",
+				content: {
+					"application/json": {
+						schema: queryEligibilityResponseOkSchema
+					}
+				}
+			},
+			400: {
+				description: "Bad Request",
+				content: {
+					"application/json": {
+						schema: queryEligibilityResponseErrorSchema,
+					},
+				},
+			},
+			401: {
+				description: "Unauthorized",
+				content: {
+					"application/json": {
+						schema: queryEligibilityResponseErrorSchema,
+					},
+				},
+			},
+			403: {
+				description: "Forbidden",
+				content: {
+					"application/json": {
+						schema: queryEligibilityResponseErrorSchema,
+					},
+				},
+			},
+			500: {
+				description: "Internal Server Error",
+				content: {
+					"application/json": {
+						schema: queryEligibilityResponseErrorSchema,
+					},
+				},
+			},
+		}
+	}),
+	async (c) => {
+		const { googleIdToken } = c.req.valid("json");
+		const authResult = await authService.getStudentId(googleIdToken);
+
+		if (!authResult.isOk()) {
+			return c.json(
+				{
+					success: false,
+					code: authResult.error,
+					message: "Unauthorized",
+				} as const,
+				401,
+			);
+		}
+
+		const voterStudentId = authResult.value;
+
+		const isEligible = await eligibilityService.isEligible({
+			voterId: voterStudentId,
+		});
+
+		if (isEligible.isErr()) {
+			return c.json(
+				{
+					success: false,
+					code: isEligible.error,
+					message: "Ineligible",
+				} as const,
+				403,
+			);
+		}
+
+		return c.json(
+			{
+				success: true,
+				eligible: isEligible.value,
+			} as const,
+			200,
+		);
+	}, (result, c) => {
+		if (!result.success) {
+			return c.json(
+				{
+					success: false,
+					code: "invalid-body",
+					message: "Validation Error",
+				} as const,
+				400,
+			);
+		}
+	}
+)

@@ -8,7 +8,10 @@ import {
 	submitVoteSchema,
 } from "../schemas/election.schema";
 import { authErrorSchema, authService } from "../services/auth.service";
-import { eligibilityErrorSchema, eligibilityService } from "../services/eligibility.service";
+import {
+	eligibilityErrorSchema,
+	eligibilityService,
+} from "../services/eligibility.service";
 import { electionModel } from "../models/election.model";
 
 export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
@@ -168,9 +171,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 						"application/json": {
 							schema: z.object({
 								success: z.literal(false),
-								code: z.enum([
-									...authErrorSchema.options
-								]),
+								code: z.enum([...authErrorSchema.options]),
 								message: z.string(),
 							}),
 						},
@@ -182,15 +183,13 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 						"application/json": {
 							schema: z.object({
 								success: z.literal(false),
-								code: z.enum([
-									...eligibilityErrorSchema.options
-								]),
+								code: z.enum([...eligibilityErrorSchema.options]),
 								message: z.string(),
 							}),
 						},
 					},
-				}
-			}
+				},
+			},
 		}),
 		async (c) => {
 			const { googleIdToken } = c.req.valid("param");
@@ -227,6 +226,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 			return c.json(
 				{
 					success: true,
+					eligible: true,
 				} as const,
 				200,
 			);

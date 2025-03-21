@@ -1,7 +1,8 @@
 import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
-import { err, ok, type Result, wrapAsync } from "../utils/result";
-import { env } from "cloudflare:workers";
 // firebase-admin wont run on cf worker so i use this instead
+import { env } from "cloudflare:workers";
+import { err, ok, type Result, ResultAsync } from "neverthrow";
+import { z } from "zod";
 
 class NoKVStore implements KeyStorer {
 	async get() {
@@ -10,7 +11,12 @@ class NoKVStore implements KeyStorer {
 	async put(value: string, expirationTtl: number) {}
 }
 
-export type AuthError = "user-not-found" | "not-chula" | "invalid-token";
+export const authErrorSchema = z.enum([
+	"user-not-found",
+	"not-chula",
+	"invalid-token",
+]);
+export type AuthError = z.output<typeof authErrorSchema>;
 
 export const authService = {
 	async getStudentId(idToken: string): Promise<Result<string, AuthError>> {
@@ -21,8 +27,11 @@ export const authService = {
 			// WorkersKVStoreSingle.getOrInitialize(env.PUBLIC_JWK_CACHE_KEY, env.PUBLIC_JWK_CACHE_KV)
 		);
 
-		const token = await wrapAsync(() => auth.verifyIdToken(idToken));
-		if (!token.ok) {
+		const token = await ResultAsync.fromPromise(
+			auth.verifyIdToken(idToken),
+			() => "",
+		);
+		if (token.isErr()) {
 			return err("invalid-token");
 		}
 

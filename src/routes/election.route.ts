@@ -1,4 +1,5 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { electionModel } from "../models/election.model";
 import {
 	queryEligibilityResponseErrorSchema,
 	queryEligibilityResponseOkSchema,
@@ -7,12 +8,9 @@ import {
 	submitVoteResponseOkSchema,
 	submitVoteSchema,
 } from "../schemas/election.schema";
-import { authErrorSchema, authService } from "../services/auth.service";
-import {
-	eligibilityErrorSchema,
-	eligibilityService,
-} from "../services/eligibility.service";
-import { electionModel } from "../models/election.model";
+import { authService } from "../services/auth.service";
+import { eligibilityService } from "../services/eligibility.service";
+import { jsonContent } from "../utils/api";
 
 export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 	.openapi(
@@ -20,55 +18,17 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 			method: "post",
 			path: "/vote",
 			request: {
-				body: {
-					content: {
-						"application/json": {
-							schema: submitVoteSchema,
-						},
-					},
-				},
+				body: jsonContent(submitVoteSchema),
 			},
 			responses: {
-				200: {
-					content: {
-						"application/json": {
-							schema: submitVoteResponseOkSchema,
-						},
-					},
-					description: "Success",
-				},
-				400: {
-					description: "Bad Request",
-					content: {
-						"application/json": {
-							schema: submitVoteResponseErrorSchema,
-						},
-					},
-				},
-				401: {
-					description: "Unauthorized",
-					content: {
-						"application/json": {
-							schema: submitVoteResponseErrorSchema,
-						},
-					},
-				},
-				403: {
-					description: "Forbidden",
-					content: {
-						"application/json": {
-							schema: submitVoteResponseErrorSchema,
-						},
-					},
-				},
-				500: {
-					description: "Internal Server Error",
-					content: {
-						"application/json": {
-							schema: submitVoteResponseErrorSchema,
-						},
-					},
-				},
+				200: jsonContent(submitVoteResponseOkSchema, "Success"),
+				400: jsonContent(submitVoteResponseErrorSchema, "Bad Request"),
+				401: jsonContent(submitVoteResponseErrorSchema, "Unauthorized"),
+				403: jsonContent(submitVoteResponseErrorSchema, "Forbidden"),
+				500: jsonContent(
+					submitVoteResponseErrorSchema,
+					"Internal Server Error",
+				),
 			},
 		}),
 		async (c) => {
@@ -149,46 +109,24 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 				params: queryEligibilitySchema,
 			},
 			responses: {
-				200: {
-					description: "Success",
-					content: {
-						"application/json": {
-							schema: queryEligibilityResponseOkSchema,
-						},
-					},
-				},
-				400: {
-					description: "Bad Request",
-					content: {
-						"application/json": {
-							schema: queryEligibilityResponseErrorSchema,
-						},
-					},
-				},
-				401: {
-					description: "Unauthorized",
-					content: {
-						"application/json": {
-							schema: z.object({
-								success: z.literal(false),
-								code: z.enum([...authErrorSchema.options]),
-								message: z.string(),
-							}),
-						},
-					},
-				},
-				403: {
-					description: "Forbidden",
-					content: {
-						"application/json": {
-							schema: z.object({
-								success: z.literal(false),
-								code: z.enum([...eligibilityErrorSchema.options]),
-								message: z.string(),
-							}),
-						},
-					},
-				},
+				// a bit of type information is lost.
+				// TODO: i will think about this later.
+				// in an ideal case we would have something like
+				// 200 -> { ok: true, ... }
+				// 401 -> { ok: false, code: "A" | "B" }
+				// 402 -> { ok: false, code: "C" }
+				// 403 -> { ok: false, code: "A" | "B" | "D" }
+				// but we got
+				// 401 -> { ok: false, code: "A" | "B" | "C" | "D" }
+				// 402 -> { ok: false, code: "A" | "B" | "C" | "D" }
+				// 403 -> { ok: false, code: "A" | "B" | "C" | "D" }
+				// also, it look like c.json first params' generic is not const for some fucking reason
+				// we should try elysia
+
+				200: jsonContent(queryEligibilityResponseOkSchema, "Success"),
+				400: jsonContent(queryEligibilityResponseErrorSchema, "Bad Request"),
+				401: jsonContent(queryEligibilityResponseErrorSchema, "Unauthorized"),
+				403: jsonContent(queryEligibilityResponseErrorSchema, "Forbidden"),
 			},
 		}),
 		async (c) => {

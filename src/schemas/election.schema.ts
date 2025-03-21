@@ -1,6 +1,7 @@
 import { z } from "@hono/zod-openapi";
 import { authErrorSchema } from "../services/auth.service";
 import { eligibilityErrorSchema } from "../services/eligibility.service";
+import { createErrorResponseSchema } from "../utils/api";
 
 export const voteSchema = z
 	.object({
@@ -51,11 +52,9 @@ export const submitVoteErrorSchema = z.enum([
 	...eligibilityErrorSchema.options,
 ]);
 
-export const submitVoteResponseErrorSchema = z.object({
-	success: z.literal(false),
-	code: submitVoteErrorSchema,
-	message: z.string(),
-});
+export const submitVoteResponseErrorSchema = createErrorResponseSchema(
+	submitVoteErrorSchema,
+);
 
 export const submitVoteResponseSchema = z.discriminatedUnion("success", [
 	submitVoteResponseOkSchema,
@@ -84,11 +83,9 @@ export const queryEligibilityErrorSchema = z.enum([
 	...eligibilityErrorSchema.options,
 ]);
 
-export const queryEligibilityResponseErrorSchema = z.object({
-	success: z.literal(false),
-	code: queryEligibilityErrorSchema,
-	message: z.string(),
-});
+export const queryEligibilityResponseErrorSchema = createErrorResponseSchema(
+	queryEligibilityErrorSchema,
+);
 
 export const queryEligibilityResponseSchema = z.discriminatedUnion("success", [
 	queryEligibilityResponseOkSchema,

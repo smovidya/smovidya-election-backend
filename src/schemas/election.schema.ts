@@ -1,6 +1,5 @@
 import { z } from "@hono/zod-openapi";
 import { authErrorSchema } from "../services/auth.service";
-import { eligibilityErrorSchema } from "../services/eligibility.service";
 import { createErrorResponseSchema } from "../utils/api";
 
 const item = (value: string, description: string) => ({
@@ -70,11 +69,7 @@ export const submitVoteResponseOkSchema = z.object({
 	message: z.string(),
 });
 
-export const submitVoteErrorSchema = z.enum([
-	"invalid-body",
-	...authErrorSchema.options,
-	...eligibilityErrorSchema.options,
-]);
+export const submitVoteErrorSchema = z.enum([...authErrorSchema.options]);
 
 export const submitVoteResponseErrorSchema = createErrorResponseSchema(
 	submitVoteErrorSchema,
@@ -101,11 +96,7 @@ export const queryEligibilityResponseOkSchema = z.object({
 	}),
 });
 
-export const queryEligibilityErrorSchema = z.enum([
-	"invalid-body",
-	...authErrorSchema.options,
-	...eligibilityErrorSchema.options,
-]);
+export const queryEligibilityErrorSchema = z.enum([...authErrorSchema.options]);
 
 export const queryEligibilityResponseErrorSchema = createErrorResponseSchema(
 	queryEligibilityErrorSchema,
@@ -120,3 +111,6 @@ export type Position = z.infer<typeof positionSchema>;
 export type Vote = z.infer<typeof voteSchema>;
 export type SubmitVote = z.infer<typeof submitVoteSchema>;
 export type SubmitVoteResponse = z.infer<typeof submitVoteResponseSchema>;
+export type QueryEligibilityResponse = z.infer<
+	typeof queryEligibilityResponseSchema
+>;

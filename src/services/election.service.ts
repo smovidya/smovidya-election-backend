@@ -37,5 +37,6 @@ export const electionService = {
 
 		return ok();
 	},
-	isVoted: (query: { voterId: string }) => electionModel.isVoted(query),
+	isVoted: electionModel.isVoted,
+	addVotes: electionModel.addVotes,
 };

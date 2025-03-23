@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { electionModel } from "../models/election.model";
 import {
 	type QueryEligibilityResponse,
 	queryEligibilityResponseErrorSchema,
@@ -50,7 +49,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 
 			const { studentId } = authResult.value;
 
-			const voteResult = await electionModel.addVotes({
+			const voteResult = await electionService.addVotes({
 				voterId: studentId,
 				votes,
 			});

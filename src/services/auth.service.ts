@@ -15,11 +15,15 @@ export const authErrorSchema = z.enum([
 	"user-not-found",
 	"not-chula",
 	"invalid-token",
+	"invalid-student-id",
+	"not-science-student",
 ]);
 export type AuthError = z.output<typeof authErrorSchema>;
 
 export const authService = {
-	async getStudentId(idToken: string): Promise<Result<string, AuthError>> {
+	async authenticate(
+		idToken: string,
+	): Promise<Result<{ studentId: string }, AuthError>> {
 		const auth = Auth.getOrInitialize(
 			env.FIREBASE_PROJECT_ID,
 			new NoKVStore(),
@@ -41,11 +45,20 @@ export const authService = {
 			return err("invalid-token");
 		}
 
-		const [id, domain] = email.split("@");
+		const [studentId, domain] = email.split("@");
 		if (!domain.endsWith("chula.ac.th")) {
 			return err("not-chula");
 		}
 
-		return ok(id);
+		if (studentId.length !== 10) {
+			return err("invalid-student-id");
+		}
+
+		// xxxxxxxx23 for science students
+		if (!/^\d{8}23$/.test(studentId)) {
+			return err("not-science-student");
+		}
+
+		return ok({ studentId });
 	},
 };

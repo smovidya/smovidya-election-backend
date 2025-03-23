@@ -14,9 +14,8 @@ export const positionSchema = z
 		"vice-president-1",
 		"vice-president-2",
 		"secretary",
-		"treasurer", // เหรัญญิก ???
-		// TODO: get better name
-		"student-affairs",
+		"treasurer",
+		"student-relations",
 		"academic",
 		"public-service",
 		"art",
@@ -30,7 +29,7 @@ export const positionSchema = z
 			item("vice-president-2", "อุปนายกคนที่ 2"),
 			item("secretary", "เลขานุการ"),
 			item("treasurer", "เหรัญญิก"),
-			item("student-affairs", "ประธานฝ่ายนิสิตสัมพันธ์"),
+			item("student-relations", "ประธานฝ่ายนิสิตสัมพันธ์"),
 			item("academic", "ประธานฝ่ายวิชาการ"),
 			item("public-service", "ประธานฝ่ายพัฒนาสังคมและบำเพ็ญประโยชน์"),
 			item("art", "ประธานฝ่ายศิลปะและวัฒนธรรม"),

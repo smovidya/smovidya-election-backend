@@ -2,7 +2,6 @@ import { err, ok, ResultAsync } from "neverthrow";
 import { z } from "zod";
 import { electionInfo } from "../constants";
 import { env } from "cloudflare:workers";
-import type { Vote } from "../schemas/election.schema";
 
 export const electionErrorSchema = z.enum([
 	"election-not-started",
@@ -85,7 +84,7 @@ export class ElectionService {
 		}
 
 		return ok({
-			count: result.value?.["COUNT(DISTINCT voterId)"] || 0,
+			count: (result.value?.["COUNT(DISTINCT voterId)"] as number) || 0,
 		});
 	}
 }

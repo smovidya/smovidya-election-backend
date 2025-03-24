@@ -1,4 +1,7 @@
-function item<const Value extends string, const Description extends string>(value: Value, description: Description) {
+function item<const Value extends string, const Description extends string>(
+	value: Value,
+	description: Description,
+) {
 	return {
 		const: value,
 		description,

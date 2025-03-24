@@ -6,6 +6,8 @@
       "dependencies": {
         "@elysiajs/html": "^1.2.0",
         "@elysiajs/swagger": "^1.2.2",
+        "@kitajs/html": "^4.2.7",
+        "@kitajs/ts-html-plugin": "^4.1.1",
         "elysia": "^1.2.25",
         "firebase-auth-cloudflare-workers": "^2.0.6",
         "neverthrow": "^8.2.0",

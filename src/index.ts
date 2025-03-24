@@ -1,12 +1,11 @@
-import { env } from "cloudflare:workers";
-import { type ElysiaSwaggerConfig, swagger } from "@elysiajs/swagger";
-import { Elysia, t } from "elysia";
-import { ElectionService } from "./services/election.service";
-import { AuthService } from "./services/auth.service";
 import { html } from "@elysiajs/html";
+import { type ElysiaSwaggerConfig, swagger } from "@elysiajs/swagger";
+import { env } from "cloudflare:workers";
+import { Elysia, t } from "elysia";
 import { devRoutes } from "./routes/dev/route";
-import { electionInfo } from "./constants";
 import { Vote } from "./schemas/election.schema";
+import { AuthService } from "./services/auth.service";
+import { ElectionService } from "./services/election.service";
 
 const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
 	return {
@@ -48,7 +47,6 @@ const app = new Elysia({
 	aot: false,
 })
 	.use(swagger(swaggerOptions()))
-	.use(html())
 	.decorate("auth", new AuthService())
 	.decorate("election", new ElectionService())
 	.derive(async ({ headers, auth, error }) => {
@@ -271,7 +269,7 @@ const app = new Elysia({
 
 // TODO: migrate to ElysiaJS
 if (env.ENVIRONMENT === "dev") {
-	app.mount("/dev", devRoutes.fetch);
+	app.mount("/dev", devRoutes);
 }
 
 export default app;

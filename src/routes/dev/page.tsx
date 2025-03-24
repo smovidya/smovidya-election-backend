@@ -1,40 +1,40 @@
+import type { Component } from "@kitajs/html";
+// @elysiajs/html dont export this
 import { env } from "cloudflare:workers";
-import { Hono } from "hono";
-import { html } from "hono/html";
-import type { Child, FC } from "hono/jsx";
+import { html, Html } from "@elysiajs/html";
 
-const Html = (props: { children?: Child }) => {
-	return html`
-        <html lang="en">
-            <head>
-                <meta charset="UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <script type="module">
-                    import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js'
+const Layout: Component = ({ children }) => {
+	return (
+		<html lang="en">
+			<head>
+				<meta charset="UTF-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-                    const firebaseConfig = {
-                        apiKey: "${env.FIREBASE_API_KEY}",
-                        authDomain: "${env.FIREBASE_AUTH_DOMAIN}",
-                        projectId: "${env.FIREBASE_PROJECT_ID}",
-                        storageBucket: "${env.FIREBASE_STORAGE_BUCKET}",
-                        messagingSenderId: "${env.FIREBASE_MESSAGING_SERVICE_ID}",
-                        appId: "${env.FIREBASE_APP_ID}"
-                    };
-
-                    // Initialize Firebase
-                    const app = initializeApp(firebaseConfig);
-                </script>
-
-                <title>API test</title>
-            </head>
-            <body>
-                <body>${props.children}</body>
-            </body>
-        </html>
-    `;
+				<title>API test</title>
+			</head>
+			<body>{children}</body>
+		</html>
+	);
 };
 
-const UserScript = () => html`
+// if i make this a jsx, typescript will yell at me
+const UserScript = () => `
+    <script type="module">
+        import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js'
+
+        const firebaseConfig = {
+            apiKey: "${env.FIREBASE_API_KEY}",
+            authDomain: "${env.FIREBASE_AUTH_DOMAIN}",
+            projectId: "${env.FIREBASE_PROJECT_ID}",
+            storageBucket: "${env.FIREBASE_STORAGE_BUCKET}",
+            messagingSenderId: "${env.FIREBASE_MESSAGING_SERVICE_ID}",
+            appId: "${env.FIREBASE_APP_ID}"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+    </script>
+
     <script type="module" defer>
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js'
 
@@ -65,9 +65,9 @@ const UserScript = () => html`
     </script>
 `;
 
-export const Page: FC = () => {
+export const Page = () => {
 	return (
-		<Html>
+		<Layout>
 			<UserScript />
 			<h1>Hello Hono!</h1>
 			<h2> User info </h2>
@@ -81,6 +81,6 @@ export const Page: FC = () => {
 			<div>
 				<a href="/reference">API references</a>
 			</div>
-		</Html>
+		</Layout>
 	);
 };

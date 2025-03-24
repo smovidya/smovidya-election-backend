@@ -1,69 +1,10 @@
 import { env } from "cloudflare:workers";
-import { swaggerUI } from "@hono/swagger-ui";
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { apiReference } from "@scalar/hono-api-reference";
 
-import { API_PROD_URL } from "./constants";
+import { Elysia } from "elysia";
 
-// Routes
-import { devRoutes } from "./routes/dev.route";
-import { electionRoutes } from "./routes/election.route";
-
-const app = new OpenAPIHono<{ Bindings: Env }>();
-
-app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
-	type: "http",
-	scheme: "bearer",
-	bearerFormat: "JWT",
-	description: "Google ID Token from Firebase Authentication",
-	in: "header",
-});
-
-// Test only
-if (env.ENVIRONMENT === "dev") {
-	app.openAPIRegistry.registerComponent("securitySchemes", "Basic", {
-		type: "http",
-		scheme: "basic",
-		description:
-			"[TEST MODE ONLY - DO NOT USE IN PRODUCTION] Basic Auth where `username` is mock student ID and `password` (optional) is mock date/time in that parsable by JS's Date()",
-		in: "header",
-	});
-}
-
-app
-	.route("/api", electionRoutes)
-	.doc("/spec.json", (c) => ({
-		openapi: "3.0.0",
-		info: {
-			version: "v1",
-			title: "SMO Vidya Election API",
-			contact: {
-				name: "SMO Vidya Election Backend Team",
-				url: "https://github.com/smovidya/smovidya-election-backend",
-			},
-		},
-		security: [{ bearerAuth: [] }],
-		servers: [
-			{
-				url: new URL(c.req.url).origin,
-				description: "Current environment",
-			},
-			{
-				url: API_PROD_URL,
-				description: "Production environment",
-			},
-		],
-	}))
-	.get("/swagger", swaggerUI({ url: "/spec.json" }))
-	.get(
-		"/reference",
-		apiReference({
-			url: "/spec.json",
-		}),
-	);
-
-if (env.ENVIRONMENT === "dev") {
-	app.route("/dev", devRoutes);
-}
+const app = new Elysia()
+  .get("/", "Hello Elysia")
+  .get("/user/:id", ({ params: { id } }) => id)
+  .post("/form", ({ body }) => body);
 
 export default app;

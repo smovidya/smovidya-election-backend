@@ -10,6 +10,7 @@
     "type:gen": "wrangler types ./src/cf-types.d.ts"
   },
   "dependencies": {
+    "@elysiajs/html": "^1.2.0",
     "@elysiajs/swagger": "^1.2.2",
     "@hono/swagger-ui": "^0.5.1",
     "@hono/zod-openapi": "^0.19.2",

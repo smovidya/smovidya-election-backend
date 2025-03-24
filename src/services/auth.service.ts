@@ -20,7 +20,7 @@ export const authErrorSchema = z.enum([
 ]);
 export type AuthError = z.output<typeof authErrorSchema>;
 
-export const authService = {
+export class AuthService {
 	async authenticate(
 		idToken: string,
 	): Promise<Result<{ studentId: string }, AuthError>> {
@@ -60,5 +60,5 @@ export const authService = {
 		}
 
 		return ok({ studentId });
-	},
-};
+	}
+}

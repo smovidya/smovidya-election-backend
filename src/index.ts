@@ -3,7 +3,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 
-import { API_PROD_URL } from './constants';
+import { API_PROD_URL } from "./constants";
 
 // Routes
 import { devRoutes } from "./routes/dev.route";

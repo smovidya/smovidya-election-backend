@@ -1,9 +1,9 @@
 // TODO: Change the election date and time to the actual election date and time.
 
-export const API_PROD_URL = "https://api-smovidya-election.bunyawatapp37204.workers.dev";
+export const API_PROD_URL =
+	"https://api-smovidya-election.bunyawatapp37204.workers.dev";
 
 export const electionInfo = {
-
 	// The start date and time of the election.
 	// เปิดโหวต 23 เมษายน 2568 เวลา 07:00 น. (valid included 07:00:00)
 	voteStart: new Date("2025-04-23T07:00:00+07:00"),

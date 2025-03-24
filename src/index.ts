@@ -4,8 +4,7 @@ import { Elysia, t } from "elysia";
 import { ElectionService } from "./services/election.service";
 import { AuthService } from "./services/auth.service";
 import { html } from "@elysiajs/html";
-
-import { devRoutes } from "./routes/dev.route";
+import { devRoutes } from "./routes/dev/route";
 import { electionInfo } from "./constants";
 
 const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
@@ -101,17 +100,6 @@ const app = new Elysia({
 				});
 			}
 
-			const voteResult = await election.addVotes({
-				voterId: studentId,
-				votes,
-			});
-
-			if (voteResult.isErr()) {
-				return error(500, {
-					error: voteResult.error,
-				});
-			}
-
 			const isVoted = await election.isVoted({ voterId: studentId });
 
 			if (isVoted.isErr()) {
@@ -123,6 +111,17 @@ const app = new Elysia({
 			if (isVoted.value.isVoted) {
 				return error(403, {
 					error: "voted-already",
+				});
+			}
+
+			const voteResult = await election.addVotes({
+				voterId: studentId,
+				votes,
+			});
+
+			if (voteResult.isErr()) {
+				return error(500, {
+					error: voteResult.error,
 				});
 			}
 

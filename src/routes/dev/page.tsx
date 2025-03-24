@@ -65,7 +65,7 @@ const UserScript = () => html`
     </script>
 `;
 
-const Page: FC = () => {
+export const Page: FC = () => {
 	return (
 		<Html>
 			<UserScript />
@@ -84,7 +84,3 @@ const Page: FC = () => {
 		</Html>
 	);
 };
-
-export const devRoutes = new Hono().get("", (c) => {
-	return c.html(<Page />);
-});

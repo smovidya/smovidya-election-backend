@@ -17,8 +17,18 @@ app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
 	bearerFormat: "JWT",
 	description: "Google ID Token from Firebase Authentication",
 	in: "header",
-	name: "Authorization",
 });
+
+// Test only
+if (env.ENVIRONMENT === "dev") {
+	app.openAPIRegistry.registerComponent("securitySchemes", "Basic", {
+		type: "http",
+		scheme: "basic",
+		description:
+			"[TEST MODE ONLY - DO NOT USE IN PRODUCTION] Basic Auth where `username` is mock student ID and `password` (optional) is mock date/time in that parsable by JS's Date()",
+		in: "header",
+	});
+}
 
 app
 	.route("/api", electionRoutes)

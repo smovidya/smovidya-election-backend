@@ -1,16 +1,17 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { electionModel } from "../models/election.model";
 import {
+	type QueryEligibilityResponse,
 	queryEligibilityResponseErrorSchema,
 	queryEligibilityResponseOkSchema,
 	queryEligibilitySchema,
+	type SubmitVoteResponse,
 	submitVoteResponseErrorSchema,
 	submitVoteResponseOkSchema,
 	submitVoteSchema,
 } from "../schemas/election.schema";
 import { authService } from "../services/auth.service";
-import { eligibilityService } from "../services/eligibility.service";
 import { jsonContent } from "../utils/api";
+import { electionService } from "../services/election.service";
 
 export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 	.openapi(
@@ -33,38 +34,23 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 		}),
 		async (c) => {
 			const { googleIdToken, votes } = c.req.valid("json");
-			const authResult = await authService.getStudentId(googleIdToken);
+			const authResult = await authService.authenticate(googleIdToken);
 
-			if (!authResult.isOk()) {
+			if (authResult.isErr()) {
 				return c.json(
 					{
 						success: false,
 						code: authResult.error,
 						message: "Unauthorized",
-					} as const,
+					} satisfies SubmitVoteResponse,
 					401,
 				);
 			}
 
-			const voterStudentId = authResult.value;
+			const { studentId } = authResult.value;
 
-			const isEligible = await eligibilityService.isEligible({
-				voterId: voterStudentId,
-			});
-
-			if (isEligible.isErr()) {
-				return c.json(
-					{
-						success: false,
-						code: isEligible.error,
-						message: "Ineligible",
-					} as const,
-					403,
-				);
-			}
-
-			const voteResult = await electionModel.addVotes({
-				voterId: voterStudentId,
+			const voteResult = await electionService.addVotes({
+				voterId: studentId,
 				votes,
 			});
 
@@ -74,7 +60,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 						success: false,
 						code: voteResult.error,
 						message: "Internal Error",
-					} as const,
+					} satisfies SubmitVoteResponse,
 					500,
 				);
 			}
@@ -83,7 +69,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 				{
 					success: true,
 					message: "Vote submitted successfully",
-				} as const,
+				} satisfies SubmitVoteResponse,
 				200,
 			);
 		},
@@ -95,7 +81,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 						success: false,
 						code: "invalid-body",
 						message: "Validation Error",
-					} as const,
+					} satisfies SubmitVoteResponse,
 					400,
 				);
 			}
@@ -126,46 +112,45 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 				200: jsonContent(queryEligibilityResponseOkSchema, "Success"),
 				400: jsonContent(queryEligibilityResponseErrorSchema, "Bad Request"),
 				401: jsonContent(queryEligibilityResponseErrorSchema, "Unauthorized"),
-				403: jsonContent(queryEligibilityResponseErrorSchema, "Forbidden"),
+				500: jsonContent(queryEligibilityResponseErrorSchema, "Internal Error"),
 			},
 		}),
 		async (c) => {
 			const { googleIdToken } = c.req.valid("param");
-			const authResult = await authService.getStudentId(googleIdToken);
+			const authResult = await authService.authenticate(googleIdToken);
 
-			if (!authResult.isOk()) {
+			if (authResult.isErr()) {
 				return c.json(
 					{
 						success: false,
 						code: authResult.error,
 						message: "Unauthorized",
-					} as const,
+					} satisfies QueryEligibilityResponse,
 					401,
 				);
 			}
 
-			const voterStudentId = authResult.value;
-
-			const isEligible = await eligibilityService.isEligible({
-				voterId: voterStudentId,
+			const { studentId } = authResult.value;
+			const isVotedResult = await electionService.isVoted({
+				voterId: studentId,
 			});
 
-			if (isEligible.isErr()) {
+			if (isVotedResult.isErr()) {
 				return c.json(
 					{
 						success: false,
-						code: isEligible.error,
-						message: "Ineligible",
-					} as const,
-					403,
+						code: isVotedResult.error,
+						message: "Internal Error",
+					} satisfies QueryEligibilityResponse,
+					500,
 				);
 			}
 
 			return c.json(
 				{
 					success: true,
-					eligible: true,
-				} as const,
+					eligible: isVotedResult.value.isVoted,
+				} satisfies QueryEligibilityResponse,
 				200,
 			);
 		},
@@ -176,7 +161,7 @@ export const electionRoutes = new OpenAPIHono<{ Bindings: Env }>()
 						success: false,
 						code: "invalid-body",
 						message: "Validation Error",
-					} as const,
+					} satisfies QueryEligibilityResponse,
 					400,
 				);
 			}

@@ -36,7 +36,7 @@ export function createErrorResponseSchema<T extends [string, ...string[]]>(
 ) {
 	return z.object({
 		success: z.literal(false),
-		code: errorEnum,
+		code: z.enum(["invalid-body", "internal-error", ...errorEnum.options]),
 		message: z.string(),
 	});
 }

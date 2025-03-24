@@ -1,6 +1,7 @@
 import { err, ok } from "neverthrow";
 import { z } from "zod";
 import { electionInfo } from "../constants";
+import { electionModel } from "../models/election.model";
 
 export const electionErrorSchema = z.enum([
 	"election-not-started",
@@ -36,4 +37,6 @@ export const electionService = {
 
 		return ok();
 	},
+	isVoted: electionModel.isVoted,
+	addVotes: electionModel.addVotes,
 };

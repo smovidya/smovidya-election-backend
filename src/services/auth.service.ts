@@ -11,15 +11,6 @@ class NoKVStore implements KeyStorer {
 	async put(value: string, expirationTtl: number) {}
 }
 
-export const authErrorSchema = z.enum([
-	"user-not-found",
-	"not-chula",
-	"invalid-token",
-	"invalid-student-id",
-	"not-science-student",
-]);
-export type AuthError = z.output<typeof authErrorSchema>;
-
 export class AuthService {
 	async authenticate(
 		idToken: string,

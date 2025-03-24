@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { type ElysiaSwaggerConfig, swagger } from "@elysiajs/swagger";
-import { Elysia, error, t } from "elysia";
+import { Elysia, t } from "elysia";
 import { ElectionService } from "./services/election.service";
 import { AuthService } from "./services/auth.service";
 import { html } from "@elysiajs/html";

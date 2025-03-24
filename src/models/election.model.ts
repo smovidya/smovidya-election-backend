@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
-import type { Vote } from "../schemas/election.schema";
 import { err, ok, ResultAsync } from "neverthrow";
+import type { Vote } from "../schemas/election.schema";
 
 export class ElectionModel {
 	async addVotes({ voterId, votes }: { voterId: string; votes: Vote[] }) {
@@ -33,5 +33,23 @@ export class ElectionModel {
 		}
 
 		return ok({ isVoted: result.value.results.length > 0 });
+	}
+
+	async currentVoterCount() {
+		// TODO: Maybe add some cache here (;ater)
+		const prepared = env.DB.prepare(
+			"SELECT COUNT(DISTINCT voterId) FROM votes",
+		);
+
+		const result = await ResultAsync.fromPromise(prepared.first(), (e) => e);
+
+		if (result.isErr()) {
+			console.error(result.error);
+			return err("internal-error");
+		}
+
+		return ok({
+			count: (result.value?.["COUNT(DISTINCT voterId)"] as number) || 0,
+		});
 	}
 }

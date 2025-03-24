@@ -1,7 +1,9 @@
-const item = (value: string, description: string) => ({
-	const: value,
-	description,
-});
+function item<const Value extends string, const Description extends string>(value: Value, description: Description) {
+	return {
+		const: value,
+		description,
+	};
+}
 
 // TODO: Change the election date and time to the actual election date and time.
 

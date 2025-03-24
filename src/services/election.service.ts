@@ -1,18 +1,19 @@
-import { err, ok, ResultAsync } from "neverthrow";
-import { z } from "zod";
+import { err, ok } from "neverthrow";
 import { electionInfo } from "../constants";
-import { env } from "cloudflare:workers";
+import { ElectionModel } from "../models/election.model";
+import { type Static, t } from "elysia";
 
-export const electionErrorSchema = z.enum([
+export const ElectionError = t.UnionEnum([
 	"election-not-started",
 	"election-ended",
 	"election-not-ended",
 	"announcement-not-started",
 ]);
-
-export type ElectionError = z.output<typeof electionErrorSchema>;
+export type ElectionError = Static<typeof ElectionError>;
 
 export class ElectionService {
+	constructor(private model = new ElectionModel()) {}
+
 	votingPeriodChecker({ currentTime }: { currentTime?: Date }) {
 		const now = currentTime || new Date();
 		if (now < electionInfo.voteStart) {
@@ -39,52 +40,14 @@ export class ElectionService {
 	}
 
 	async addVotes({ voterId, votes }: { voterId: string; votes: Vote[] }) {
-		const voteStatements = votes.map((vote) =>
-			env.DB.prepare(
-				"INSERT INTO votes (voterId, candidateId, position) VALUES (?, ?, ?)",
-			).bind(voterId, vote.candidateId, vote.position),
-		);
-
-		const result = await ResultAsync.fromPromise(
-			env.DB.batch(voteStatements),
-			() => [],
-		);
-
-		if (result.isErr()) return err("internal-error");
-
-		return result.value.every((r) => r.success) ? ok() : err("internal-error");
+		return await this.model.addVotes({ voterId, votes });
 	}
 
 	async isVoted({ voterId }: { voterId: string }) {
-		const prepared = env.DB.prepare(
-			"SELECT * FROM votes WHERE voterId = ?",
-		).bind(voterId);
-
-		const result = await ResultAsync.fromPromise(prepared.all(), () => []);
-
-		if (result.isErr()) {
-			console.error(result.error);
-			return err("internal-error");
-		}
-
-		return ok({ isVoted: result.value.results.length > 0 });
+		return await this.model.isVoted({ voterId });
 	}
 
 	async currentVoterCount() {
-		// TODO: Maybe add some cache here (;ater)
-		const prepared = env.DB.prepare(
-			"SELECT COUNT(DISTINCT voterId) FROM votes",
-		);
-
-		const result = await ResultAsync.fromPromise(prepared.first(), (e) => e);
-
-		if (result.isErr()) {
-			console.error(result.error);
-			return err("internal-error");
-		}
-
-		return ok({
-			count: (result.value?.["COUNT(DISTINCT voterId)"] as number) || 0,
-		});
+		return await this.model.currentVoterCount();
 	}
 }

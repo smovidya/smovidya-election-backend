@@ -2,7 +2,7 @@ import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
 // firebase-admin wont run on cf worker so i use this instead
 import { env } from "cloudflare:workers";
 import { err, ok, type Result, ResultAsync } from "neverthrow";
-import { z } from "zod";
+import { type Static, t } from "elysia";
 
 class NoKVStore implements KeyStorer {
 	async get() {
@@ -11,10 +11,21 @@ class NoKVStore implements KeyStorer {
 	async put(value: string, expirationTtl: number) {}
 }
 
+export const User = t.Object({
+	studentId: t.String(),
+});
+export type User = Static<typeof User>;
+
+export const AuthError = t.UnionEnum([
+	"invalid-token",
+	"not-chula",
+	"invalid-student-id",
+	"not-science-student",
+]);
+export type AuthError = Static<typeof AuthError>;
+
 export class AuthService {
-	async authenticate(
-		idToken: string,
-	): Promise<Result<{ studentId: string }, AuthError>> {
+	async authenticate(idToken: string): Promise<Result<User, AuthError>> {
 		const auth = Auth.getOrInitialize(
 			env.FIREBASE_PROJECT_ID,
 			new NoKVStore(),
@@ -24,7 +35,7 @@ export class AuthService {
 
 		const token = await ResultAsync.fromPromise(
 			auth.verifyIdToken(idToken),
-			() => "",
+			() => [],
 		);
 		if (token.isErr()) {
 			return err("invalid-token");

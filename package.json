@@ -12,7 +12,6 @@
   "dependencies": {
     "@elysiajs/html": "^1.2.0",
     "@elysiajs/swagger": "^1.2.2",
-    "@scalar/hono-api-reference": "^0.7.2",
     "elysia": "^1.2.25",
     "firebase-auth-cloudflare-workers": "^2.0.6",
     "neverthrow": "^8.2.0"

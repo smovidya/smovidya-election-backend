@@ -1,10 +1,18 @@
 // TODO: Change the election date and time to the actual election date and time.
 
+export const API_PROD_URL = "https://api-smovidya-election.bunyawatapp37204.workers.dev";
+
 export const electionInfo = {
+
 	// The start date and time of the election.
-	voteStart: new Date("2025-04-25T00:00:00+07:00"),
+	// เปิดโหวต 23 เมษายน 2568 เวลา 07:00 น. (valid included 07:00:00)
+	voteStart: new Date("2025-04-23T07:00:00+07:00"),
+
 	// The end date and time of the election.
-	voteEnd: new Date("2025-04-26T00:00:00+07:00"),
+	// ปิดโหวต 23 เมษายน 2568 เวลา 17:00 น. (valid included 17:00:00)
+	voteEnd: new Date("2025-04-23T17:00:00+07:00"),
+
 	// Announcement date and time of the election results.
-	resultAnnouncement: new Date("2025-04-27T00:00:00+07:00"),
+	// ประกาศผล 27 เมษายน 2568 เวลา 00:00 น.
+	resultAnnouncement: new Date("2025-04-24T00:00:00+07:00"),
 };

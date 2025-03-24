@@ -3,21 +3,22 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 
+import { API_PROD_URL } from './constants';
+
 // Routes
 import { devRoutes } from "./routes/dev.route";
 import { electionRoutes } from "./routes/election.route";
 
 const app = new OpenAPIHono<{ Bindings: Env }>();
 
-app
-	.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
-		type: 'http',
-		scheme: 'bearer',
-		bearerFormat: "JWT",
-		description: "Google ID Token from Firebase Authentication",
-		in: "header",
-		name: "Authorization",
-	})
+app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
+	type: "http",
+	scheme: "bearer",
+	bearerFormat: "JWT",
+	description: "Google ID Token from Firebase Authentication",
+	in: "header",
+	name: "Authorization",
+});
 
 app
 	.route("/api", electionRoutes)
@@ -35,12 +36,12 @@ app
 		servers: [
 			{
 				url: new URL(c.req.url).origin,
-				description: 'Current environment',
+				description: "Current environment",
 			},
 			{
-				url: "https://api-smovidya-election.bunyawatapp37204.workers.dev/",
+				url: API_PROD_URL,
 				description: "Production environment",
-			}
+			},
 		],
 	}))
 	.get("/swagger", swaggerUI({ url: "/spec.json" }))

@@ -3,9 +3,9 @@ import { type ElysiaSwaggerConfig, swagger } from "@elysiajs/swagger";
 import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 import { devRoutes } from "./routes/dev/route";
-import { Vote } from "./schemas/election.schema";
 import { AuthService } from "./services/auth.service";
 import { ElectionService } from "./services/election.service";
+import { electionInfo } from "./constants";
 
 const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
 	return {
@@ -56,11 +56,18 @@ const app = new Elysia({
 		) {
 			console.log("[DEV] Using mock auth");
 			const [_, rawToken] = headers.authorization.split(" ");
-			const token = atob(rawToken);
+
+			if (!rawToken) {
+				return error(401, {
+					error: "missing-authorization",
+				});
+			}
+			const token = Buffer.from(rawToken, "base64").toString("utf-8");
 			const [studentId, ...time] = token.split(":");
 
 			console.log("[DEV] Mock student ID:", studentId);
-			console.log("[DEV] Mock time:", time.join(":"));
+			console.log("[DEV] Mock time:", time.join(":") || "now");
+
 			return {
 				studentId,
 				currentTime: time ? new Date(time.join(":")) : new Date(),
@@ -68,12 +75,6 @@ const app = new Elysia({
 		}
 
 		const [_, idToken] = headers.authorization?.split(" ") ?? [];
-
-		if (!idToken) {
-			return error(401, {
-				error: "missing-authorization",
-			});
-		}
 
 		const authResult = await auth.authenticate(idToken);
 
@@ -88,143 +89,213 @@ const app = new Elysia({
 			currentTime: new Date(),
 		};
 	})
-	.post(
-		"/api/vote",
-		async ({ body: { votes }, election, studentId, error, currentTime }) => {
-			const votingPeriodChecker = election.votingPeriodChecker({ currentTime });
-
-			if (votingPeriodChecker.isErr()) {
-				return error(403, {
-					error: votingPeriodChecker.error,
-				});
-			}
-
-			const isVoted = await election.isVoted({ voterId: studentId });
-
-			if (isVoted.isErr()) {
-				return error(500, {
-					error: isVoted.error,
-				});
-			}
-
-			if (isVoted.value.isVoted) {
-				return error(403, {
-					error: "voted-already",
-				});
-			}
-
-			const voteResult = await election.addVotes({
-				voterId: studentId,
-				votes,
-			});
-
-			if (voteResult.isErr()) {
-				return error(500, {
-					error: voteResult.error,
-				});
-			}
-
-			return {
-				success: true,
-			};
-		},
+	.guard(
 		{
-			body: t.Object({
-				votes: t.Array(Vote),
-			}),
-			detail: {
-				description: "Submit votes from a student",
+			async beforeHandle({ studentId, error, auth }) {
+				if (!studentId) {
+					return error(403, {
+						error: "missing-authorization",
+					});
+				}
+
+				const rightsCheck = await auth.verifyRight(studentId);
+				if (rightsCheck.isErr()) {
+					return error(403, {
+						error: rightsCheck.error,
+					});
+				}
+
+				// pass
 			},
-			response: {
-				200: t.Object(
+		},
+		(app) =>
+			app
+				.post(
+					"/api/vote",
+					async ({
+						body: { votes },
+						election,
+						studentId,
+						error,
+						currentTime,
+					}) => {
+						const votingPeriodChecker = election.votingPeriodChecker({
+							currentTime,
+						});
+
+						if (votingPeriodChecker.isErr()) {
+							return error(403, {
+								error: votingPeriodChecker.error,
+							});
+						}
+
+						const isVoted = await election.isVoted({ voterId: studentId });
+
+						if (isVoted.isErr()) {
+							return error(500, {
+								error: isVoted.error,
+							});
+						}
+
+						if (isVoted.value.isVoted) {
+							return error(403, {
+								error: "voted-already",
+							});
+						}
+
+						const voteResult = await election.addVotes({
+							voterId: studentId,
+							votes,
+						});
+
+						if (voteResult.isErr()) {
+							return error(500, {
+								error: voteResult.error,
+							});
+						}
+
+						return {
+							success: true,
+						};
+					},
 					{
-						success: t.Boolean({
-							description: "Whether the vote is successfully submitted",
-							title: "Success",
+						body: t.Object({
+							votes: t.Array(
+								t.Object({
+									candidateId: t.Union(
+										[
+											t.Number({
+												description: "Student ID of the candidate",
+												title: "Student ID",
+											}),
+											t.Literal("no-vote", {
+												title: "No Vote",
+												description:
+													"Cast no vote when multiple candidate or not express opinion on one candidate",
+											}),
+											t.Literal("disapprove", {
+												title: "Disapprove",
+												description:
+													"Not approve when there is only one candidate",
+											}),
+										],
+										{
+											description:
+												'The student ID of the candidate or "no-vote" (cast no vote when multiple candidate) or "disapprove (when there is only one candidate)',
+											examples: [1234567823, "no-vote", "disapprove"],
+										},
+									),
+									position: t.Union([
+										...electionInfo.positions.map((position) =>
+											t.Literal(position.const, {
+												description: position.description,
+											}),
+										),
+									]),
+								}),
+							),
 						}),
+						detail: {
+							description: "Submit votes from a student",
+						},
+						response: {
+							200: t.Object(
+								{
+									success: t.Boolean({
+										description: "Whether the vote is successfully submitted",
+										title: "Success",
+									}),
+								},
+								{
+									description: "Vote submission result",
+								},
+							),
+							403: t.Object(
+								{
+									error: t.UnionEnum([
+										"election-not-started",
+										"election-ended",
+										"voted-already",
+									]),
+								},
+								{
+									description: "Forbidden to vote",
+								},
+							),
+							500: t.Object(
+								{
+									error: t.UnionEnum(["internal-error"]),
+								},
+								{
+									description: "Internal server error",
+								},
+							),
+						},
 					},
-					{
-						description: "Vote submission result",
-					},
-				),
-				403: t.Object(
-					{
-						error: t.UnionEnum([
-							"election-not-started",
-							"election-ended",
-							"voted-already",
-						]),
-					},
-					{
-						description: "Forbidden to vote",
-					},
-				),
-				500: t.Object(
-					{
-						error: t.UnionEnum(["internal-error"]),
-					},
-					{
-						description: "Internal server error",
-					},
-				),
-			},
-		},
-	)
-	.get(
-		"/api/eligibility",
-		async ({ election, studentId, error }) => {
-			const isVoted = await election.isVoted({ voterId: studentId });
+				)
+				.get(
+					"/api/eligibility",
+					async ({ election, studentId, error }) => {
+						const isVoted = await election.isVoted({ voterId: studentId });
 
-			if (isVoted.isErr()) {
-				return error(500, {
-					error: isVoted.error,
-				});
-			}
+						if (isVoted.isErr()) {
+							return error(500, {
+								error: isVoted.error,
+							});
+						}
 
-			return {
-				eligible: !isVoted.value.isVoted,
-				reason: isVoted.value.isVoted ? "voted-already" : undefined,
-			};
-		},
-		{
-			response: {
-				200: t.Object({
-					eligible: t.Boolean({
-						description: "Whether the student is eligible to vote or not",
-						title: "Eligibility",
-						examples: [true, false],
+						return {
+							eligible: !isVoted.value.isVoted,
+							reason: isVoted.value.isVoted ? "voted-already" : undefined,
+						};
+					},
+					{
+						response: {
+							200: t.Object({
+								eligible: t.Boolean({
+									description: "Whether the student is eligible to vote or not",
+									title: "Eligibility",
+									examples: [true, false],
+								}),
+								reason: t.Optional(
+									t.String({
+										description:
+											"The reason why the student is not eligible to vote",
+										title: "Reason",
+									}),
+								),
+							}),
+							401: t.Object({
+								error: t.String({
+									description: "Missing authorization",
+									title: "Error",
+								}),
+							}),
+							500: t.Object({
+								error: t.String({
+									description: "The error message",
+									title: "Error",
+								}),
+							}),
+						},
+						detail: {
+							description: "Check if the current student is eligible to vote",
+						},
+					},
+				)
+				.get(
+					"/api/me",
+					({ studentId, currentTime }) => ({
+						studentId,
+						currentTime,
 					}),
-					reason: t.Optional(
-						t.String({
-							description: "The reason why the student is not eligible to vote",
-							title: "Reason",
-						}),
-					),
-				}),
-				500: t.Object({
-					error: t.String({
-						description: "The error message",
-						title: "Error",
-					}),
-				}),
-			},
-			detail: {
-				description: "Check if the current student is eligible to vote",
-			},
-		},
-	)
-	.get(
-		"/api/me",
-		({ studentId, currentTime }) => ({
-			studentId,
-			currentTime,
-		}),
-		{
-			detail: {
-				description:
-					"Get the current student ID and the current date/time specified by the token",
-			},
-		},
+					{
+						detail: {
+							description:
+								"Get the current student ID and the current date/time specified by the token",
+						},
+					},
+				),
 	)
 	.get(
 		"/api/voter-count",

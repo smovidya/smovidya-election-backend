@@ -1,5 +1,5 @@
 import { type Static, t } from "elysia";
-import { electionInfo } from "../constants";
+import { electionInfo } from "../../lib/constants";
 
 export const Vote = t.Object({
 	candidateId: t.Union(

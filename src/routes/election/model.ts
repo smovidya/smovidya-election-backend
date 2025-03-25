@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { err, ok, ResultAsync } from "neverthrow";
-import type { Vote } from "../schemas/election.schema";
+import type { Vote } from "./schema";
 
 export class ElectionModel {
 	async addVotes({ voterId, votes }: { voterId: string; votes: Vote[] }) {

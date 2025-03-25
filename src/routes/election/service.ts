@@ -1,7 +1,8 @@
 import { err, ok } from "neverthrow";
-import { electionInfo } from "../constants";
-import { ElectionModel } from "../models/election.model";
+import { electionInfo } from "../../lib/constants";
+import { ElectionModel } from "./model";
 import { type Static, t } from "elysia";
+import type { Vote } from "./schema";
 
 export const ElectionError = t.UnionEnum([
 	"election-not-started",

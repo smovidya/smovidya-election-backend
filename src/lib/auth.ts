@@ -2,7 +2,7 @@ import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
 // firebase-admin wont run on cf worker so i use this instead
 import { env } from "cloudflare:workers";
 import { err, ok, type Result, ResultAsync } from "neverthrow";
-import { type Static, t } from "elysia";
+import Elysia, { type Static, t } from "elysia";
 
 class NoKVStore implements KeyStorer {
 	async get() {
@@ -74,3 +74,47 @@ export class AuthService {
 		return ok();
 	}
 }
+
+export const auth = () =>
+	new Elysia({ aot: false, name: "auth" })
+		.decorate("auth", new AuthService())
+		.derive({ as: "scoped" }, async ({ headers, auth, error }) => {
+			if (
+				env.ENVIRONMENT === "dev" &&
+				headers.authorization?.startsWith("Basic ")
+			) {
+				console.log("[DEV] Using mock auth");
+				const [_, rawToken] = headers.authorization.split(" ");
+
+				if (!rawToken) {
+					return error(401, {
+						error: "missing-authorization",
+					});
+				}
+				const token = Buffer.from(rawToken, "base64").toString("utf-8");
+				const [studentId, ...time] = token.split(":");
+
+				console.log("[DEV] Mock student ID:", studentId);
+				console.log("[DEV] Mock time:", time.join(":") || "now");
+
+				return {
+					studentId,
+					currentTime: time ? new Date(time.join(":")) : new Date(),
+				};
+			}
+
+			const [_, idToken] = headers.authorization?.split(" ") ?? [];
+
+			const authResult = await auth.authenticate(idToken);
+
+			if (authResult.isErr()) {
+				return error(401, {
+					error: authResult.error,
+				});
+			}
+
+			return {
+				studentId: authResult.value.studentId,
+				currentTime: new Date(),
+			};
+		});

@@ -1,6 +1,6 @@
+import { html, Html } from "@elysiajs/html";
 import Elysia from "elysia";
 import { Page } from "./page";
-import { html, Html, isHtml } from "@elysiajs/html";
 
 export const devRoutes = new Elysia({ aot: false })
 	.use(html())

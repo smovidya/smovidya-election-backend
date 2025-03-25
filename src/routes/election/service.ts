@@ -3,14 +3,29 @@ import { electionInfo } from "../../lib/constants";
 import { ElectionModel } from "./model";
 import { type Static, t } from "elysia";
 import type { Vote } from "./schema";
+import { assert } from "../../lib/function";
 
-export const ElectionError = t.UnionEnum([
+export const ElectionPeriodError = t.UnionEnum([
 	"election-not-started",
 	"election-ended",
 	"election-not-ended",
 	"announcement-not-started",
 ]);
-export type ElectionError = Static<typeof ElectionError>;
+export type ElectionPeriodError = Static<typeof ElectionPeriodError>;
+
+export const VoteError = t.UnionEnum([
+	// typescript hate spreading
+	ElectionPeriodError.enum[0],
+	ElectionPeriodError.enum[1],
+	ElectionPeriodError.enum[2],
+	"voted-already",
+]);
+export type VoteError = Static<typeof VoteError>;
+
+assert(
+	ElectionPeriodError.enum.length === VoteError.enum.length,
+	"These two enums should be eqaul in lenght",
+);
 
 export class ElectionService {
 	constructor(private model = new ElectionModel()) {}

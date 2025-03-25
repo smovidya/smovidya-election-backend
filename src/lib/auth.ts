@@ -1,8 +1,8 @@
+import { env } from "cloudflare:workers";
+import Elysia, { type Static, t } from "elysia";
 import { Auth, type KeyStorer } from "firebase-auth-cloudflare-workers";
 // firebase-admin wont run on cf worker so i use this instead
-import { env } from "cloudflare:workers";
-import { err, ok, type Result, ResultAsync } from "neverthrow";
-import Elysia, { type Static, t } from "elysia";
+import { type Result, ResultAsync, err, ok } from "neverthrow";
 
 class NoKVStore implements KeyStorer {
 	async get() {
@@ -16,16 +16,59 @@ export const User = t.Object({
 });
 export type User = Static<typeof User>;
 
-export const AuthError = t.UnionEnum([
+export const AuthUnauthorizedError = t.UnionEnum([
+	"missing-authorization",
 	"invalid-token",
+]);
+export const AuthForbiddenError = t.UnionEnum([
 	"not-chula",
 	"invalid-student-id",
 	"not-science-student",
 ]);
+export const AuthError = t.Union([AuthUnauthorizedError, AuthForbiddenError]);
 export type AuthError = Static<typeof AuthError>;
 
 export class AuthService {
-	async authenticate(idToken: string) {
+	constructor(public headers: Record<string, string | undefined>) {}
+
+	async getUser(): Promise<Result<User, AuthError>> {
+		if (
+			env.ENVIRONMENT === "dev" &&
+			this.headers.authorization?.startsWith("Basic ")
+		) {
+			console.log("[DEV] Using mock auth");
+			const [_, rawToken] = this.headers.authorization.split(" ");
+
+			if (!rawToken) {
+				return err("missing-authorization");
+			}
+			const token = Buffer.from(rawToken, "base64").toString("utf-8");
+			const [studentId, ...time] = token.split(":");
+
+			console.log("[DEV] Mock student ID:", studentId);
+			console.log("[DEV] Mock time:", time.join(":") || "now");
+
+			return ok({
+				studentId,
+				currentTime: time ? new Date(time.join(":")) : new Date(),
+			});
+		}
+
+		const [_, idToken] = this.headers.authorization?.split(" ") ?? [];
+
+		const authResult = await this.getStudentId(idToken);
+
+		if (authResult.isErr()) {
+			return err(authResult.error);
+		}
+
+		return ok({
+			studentId: authResult.value.studentId,
+			currentTime: new Date(),
+		});
+	}
+
+	async getStudentId(idToken: string) {
 		const auth = Auth.getOrInitialize(
 			env.FIREBASE_PROJECT_ID,
 			new NoKVStore(),
@@ -76,45 +119,9 @@ export class AuthService {
 }
 
 export const auth = () =>
-	new Elysia({ aot: false, name: "auth" })
-		.decorate("auth", new AuthService())
-		.derive({ as: "scoped" }, async ({ headers, auth, error }) => {
-			if (
-				env.ENVIRONMENT === "dev" &&
-				headers.authorization?.startsWith("Basic ")
-			) {
-				console.log("[DEV] Using mock auth");
-				const [_, rawToken] = headers.authorization.split(" ");
-
-				if (!rawToken) {
-					return error(401, {
-						error: "missing-authorization",
-					});
-				}
-				const token = Buffer.from(rawToken, "base64").toString("utf-8");
-				const [studentId, ...time] = token.split(":");
-
-				console.log("[DEV] Mock student ID:", studentId);
-				console.log("[DEV] Mock time:", time.join(":") || "now");
-
-				return {
-					studentId,
-					currentTime: time ? new Date(time.join(":")) : new Date(),
-				};
-			}
-
-			const [_, idToken] = headers.authorization?.split(" ") ?? [];
-
-			const authResult = await auth.authenticate(idToken);
-
-			if (authResult.isErr()) {
-				return error(401, {
-					error: authResult.error,
-				});
-			}
-
-			return {
-				studentId: authResult.value.studentId,
-				currentTime: new Date(),
-			};
-		});
+	new Elysia({ aot: false, name: "auth" }).derive(
+		{ as: "scoped" },
+		async ({ headers }) => ({
+			auth: new AuthService(headers),
+		}),
+	);

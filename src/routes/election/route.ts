@@ -1,141 +1,139 @@
 import Elysia, { t } from "elysia";
-import { ElectionService } from "./service";
-import { auth } from "../../lib/auth";
+import {
+	apiError,
+	apiInternalError,
+	apiOk,
+	mergeUnionEnum,
+} from "../../lib/schema";
+import {
+	AuthForbiddenError,
+	AuthUnauthorizedError,
+	auth,
+} from "../../lib/auth";
+import { currentTime } from "../../lib/time";
 import { Vote } from "./schema";
+import { ElectionService, VoteError } from "./service";
 
 export const electionRoutes = new Elysia({ aot: false })
 	.use(auth())
+	.use(currentTime())
 	.decorate("election", new ElectionService())
-	.guard(
-		{
-			async beforeHandle({ studentId, error, auth }) {
-				if (!studentId) {
-					return error(403, {
-						error: "missing-authorization",
+	.guard({}, (app) =>
+		app
+			// this is the actual gaurd
+			// no type-safety here
+			.derive(async ({ auth, error }) => {
+				const user = await auth.getUser();
+				if (user.isErr()) {
+					const statusCode =
+						user.error === "missing-authorization" ||
+						user.error === "invalid-token"
+							? 401
+							: 403;
+
+					return error(statusCode, {
+						success: false,
+						error: user.error,
 					});
 				}
 
-				const rightsCheck = await auth.verifyRight(studentId);
-				if (rightsCheck.isErr()) {
-					return error(403, {
-						error: rightsCheck.error,
-					});
-				}
-
-				// pass
-			},
-		},
-		(app) =>
-			app
-				.post(
-					"/api/vote",
-					async ({
-						body: { votes },
-						election,
-						studentId,
-						error,
+				return { user: user.value };
+			})
+			.post(
+				"/api/vote",
+				async ({
+					body: { votes },
+					election,
+					user: { studentId },
+					error,
+					currentTime,
+				}) => {
+					const votingPeriodChecker = election.votingPeriodChecker({
 						currentTime,
-					}) => {
-						const votingPeriodChecker = election.votingPeriodChecker({
-							currentTime,
+					});
+
+					if (votingPeriodChecker.isErr()) {
+						return error(403, {
+							success: false,
+							error: votingPeriodChecker.error,
 						});
+					}
 
-						if (votingPeriodChecker.isErr()) {
-							return error(403, {
-								error: votingPeriodChecker.error,
-							});
-						}
+					const isVoted = await election.isVoted({ voterId: studentId });
 
-						const isVoted = await election.isVoted({ voterId: studentId });
-
-						if (isVoted.isErr()) {
-							return error(500, {
-								error: isVoted.error,
-							});
-						}
-
-						if (isVoted.value.isVoted) {
-							return error(403, {
-								error: "voted-already",
-							});
-						}
-
-						const voteResult = await election.addVotes({
-							voterId: studentId,
-							votes,
+					if (isVoted.isErr()) {
+						return error(500, {
+							success: false,
+							error: isVoted.error,
 						});
+					}
 
-						if (voteResult.isErr()) {
-							return error(500, {
-								error: voteResult.error,
-							});
-						}
+					if (isVoted.value.isVoted) {
+						return error(403, {
+							success: false,
+							error: "voted-already",
+						});
+					}
 
-						return {
-							success: true,
-						};
+					const voteResult = await election.addVotes({
+						voterId: studentId,
+						votes,
+					});
+
+					if (voteResult.isErr()) {
+						return error(500, {
+							success: false,
+							error: voteResult.error,
+						});
+					}
+
+					return {
+						success: true,
+					};
+				},
+				{
+					body: t.Object({
+						votes: t.Array(Vote),
+					}),
+					detail: {
+						description: "Submit votes from a student",
 					},
-					{
-						body: t.Object({
-							votes: t.Array(Vote),
+					response: {
+						200: apiOk(undefined, {
+							description: "Vote submission result",
 						}),
-						detail: {
-							description: "Submit votes from a student",
-						},
-						response: {
-							200: t.Object(
-								{
-									success: t.Boolean({
-										description: "Whether the vote is successfully submitted",
-										title: "Success",
-									}),
-								},
-								{
-									description: "Vote submission result",
-								},
-							),
-							403: t.Object(
-								{
-									error: t.UnionEnum([
-										"election-not-started",
-										"election-ended",
-										"voted-already",
-									]),
-								},
-								{
-									description: "Forbidden to vote",
-								},
-							),
-							500: t.Object(
-								{
-									error: t.UnionEnum(["internal-error"]),
-								},
-								{
-									description: "Internal server error",
-								},
-							),
-						},
+						401: apiError(AuthUnauthorizedError, {
+							description: "Unauthorized",
+						}),
+						403: apiError(mergeUnionEnum(VoteError, AuthForbiddenError), {
+							description: "Forbidden to vote",
+						}),
+						500: apiInternalError(),
 					},
-				)
-				.get(
-					"/api/eligibility",
-					async ({ election, studentId, error }) => {
-						const isVoted = await election.isVoted({ voterId: studentId });
+				},
+			)
+			.get(
+				"/api/eligibility",
+				async ({ election, user: { studentId }, error }) => {
+					const isVoted = await election.isVoted({ voterId: studentId });
 
-						if (isVoted.isErr()) {
-							return error(500, {
-								error: isVoted.error,
-							});
-						}
+					if (isVoted.isErr()) {
+						return error(500, {
+							success: false,
+							error: isVoted.error,
+						});
+					}
 
-						return {
-							eligible: !isVoted.value.isVoted,
-							reason: isVoted.value.isVoted ? "voted-already" : undefined,
-						};
-					},
-					{
-						response: {
-							200: t.Object({
+					return {
+						success: true,
+						eligible: !isVoted.value.isVoted,
+						reason: isVoted.value.isVoted ? "voted-already" : undefined,
+					};
+				},
+				{
+					response: {
+						200: apiOk(
+							t.Object({
 								eligible: t.Boolean({
 									description: "Whether the student is eligible to vote or not",
 									title: "Eligibility",
@@ -149,37 +147,44 @@ export const electionRoutes = new Elysia({ aot: false })
 									}),
 								),
 							}),
-							401: t.Object({
-								error: t.String({
-									description: "Missing authorization",
-									title: "Error",
+						),
+						401: apiError(AuthUnauthorizedError),
+						403: apiError(AuthForbiddenError),
+						500: apiInternalError(),
+					},
+					detail: {
+						description: "Check if the current student is eligible to vote",
+					},
+				},
+			)
+			.get(
+				"/api/me",
+				({ user: { studentId }, currentTime }) => ({
+					success: true,
+					studentId,
+					currentTime,
+				}),
+				{
+					detail: {
+						description:
+							"Get the current student ID and the current date/time specified by the token",
+					},
+					response: {
+						200: apiOk(
+							t.Object({
+								studentId: t.String({
+									description: "Current user's student ID",
+								}),
+								currentTime: t.Date({
+									description: "Current timestamp",
 								}),
 							}),
-							500: t.Object({
-								error: t.String({
-									description: "The error message",
-									title: "Error",
-								}),
-							}),
-						},
-						detail: {
-							description: "Check if the current student is eligible to vote",
-						},
+						),
+						401: apiError(AuthUnauthorizedError),
+						403: apiError(AuthForbiddenError),
 					},
-				)
-				.get(
-					"/api/me",
-					({ studentId, currentTime }) => ({
-						studentId,
-						currentTime,
-					}),
-					{
-						detail: {
-							description:
-								"Get the current student ID and the current date/time specified by the token",
-						},
-					},
-				),
+				},
+			),
 	)
 	.get(
 		"/api/voter-count",
@@ -188,11 +193,13 @@ export const electionRoutes = new Elysia({ aot: false })
 
 			if (count.isErr()) {
 				return error(500, {
+					success: false,
 					error: count.error,
 				});
 			}
 
 			return {
+				success: true,
 				count: count.value.count,
 				asOf: new Date(currentTime),
 			};
@@ -202,22 +209,19 @@ export const electionRoutes = new Elysia({ aot: false })
 				description: "Get the current number of voters who have voted",
 			},
 			response: {
-				200: t.Object({
-					count: t.Number({
-						description: "The current number of voters who have voted",
-						title: "Voter Count",
+				200: apiOk(
+					t.Object({
+						count: t.Number({
+							description: "The current number of voters who have voted",
+							title: "Voter Count",
+						}),
+						asOf: t.Date({
+							description: "The date/time when the count is taken",
+							title: "As of",
+						}),
 					}),
-					asOf: t.Date({
-						description: "The date/time when the count is taken",
-						title: "As of",
-					}),
-				}),
-				500: t.Object({
-					error: t.String({
-						description: "Internal server error",
-						title: "Error",
-					}),
-				}),
+				),
+				500: apiInternalError(),
 			},
 		},
 	);

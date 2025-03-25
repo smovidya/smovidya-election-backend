@@ -148,8 +148,12 @@ export const electionRoutes = new Elysia({ aot: false })
 								),
 							}),
 						),
-						401: apiError(AuthUnauthorizedError),
-						403: apiError(AuthForbiddenError),
+						401: apiError(AuthUnauthorizedError, {
+							description: "Unauthorized",
+						}),
+						403: apiError(AuthForbiddenError, {
+							description: "Forbidden to access",
+						}),
 						500: apiInternalError(),
 					},
 					detail: {
@@ -173,15 +177,19 @@ export const electionRoutes = new Elysia({ aot: false })
 						200: apiOk(
 							t.Object({
 								studentId: t.String({
-									description: "Current user's student ID",
+									description: "The user's student ID",
 								}),
 								currentTime: t.Date({
 									description: "Current timestamp",
 								}),
 							}),
 						),
-						401: apiError(AuthUnauthorizedError),
-						403: apiError(AuthForbiddenError),
+						401: apiError(AuthUnauthorizedError, {
+							description: "Unauthorized",
+						}),
+						403: apiError(AuthForbiddenError, {
+							description: "Forbidden to access",
+						}),
 					},
 				},
 			),
@@ -248,7 +256,9 @@ export const electionRoutes = new Elysia({ aot: false })
 						result: ElectionResult,
 					}),
 				),
-				403: apiError(ElectionPeriodError),
+				403: apiError(ElectionPeriodError, {
+					description: "Forbidden to access",
+				}),
 				500: apiInternalError(),
 			},
 		},

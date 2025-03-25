@@ -45,6 +45,9 @@ export function apiError<T extends TSchema>(
 			success: t.Literal(false, {
 				description: "Whether the operation is succeed",
 				title: "Success",
+				examples: [false], 
+				// bug???
+				// this will decay from literal value `false` to `Boolean`
 			}),
 			error: errorEnum,
 		},
@@ -62,7 +65,7 @@ export function apiOk<T extends TObject>(
 	dataSchema?: T,
 	options?: ObjectOptions,
 ) {
-	if (dataSchema) {
+	if (dataSchema !== undefined) {
 		return t.Composite(
 			// t.Composite is like typescript `&` operator
 			[

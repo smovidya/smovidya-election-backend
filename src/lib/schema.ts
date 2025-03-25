@@ -43,7 +43,7 @@ export function apiError<T extends TSchema>(
 	return t.Object(
 		{
 			success: t.Literal(false, {
-				description: "Whether the vote is successfully submitted",
+				description: "Whether the operation is succeed",
 				title: "Success",
 			}),
 			error: errorEnum,
@@ -68,7 +68,7 @@ export function apiOk<T extends TObject>(
 			[
 				t.Object({
 					success: t.Literal(true, {
-						description: "Whether the vote is successfully submitted",
+						description: "Whether the operation is succeed",
 						title: "Success",
 					}),
 				}),
@@ -80,7 +80,7 @@ export function apiOk<T extends TObject>(
 	return t.Object(
 		{
 			success: t.Literal(true, {
-				description: "Whether the vote is successfully submitted",
+				description: "Whether the operation is succeed",
 				title: "Success",
 			}),
 		},

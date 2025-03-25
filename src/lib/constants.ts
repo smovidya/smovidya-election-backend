@@ -39,4 +39,16 @@ export const electionInfo = {
 		item("art", "ประธานฝ่ายศิลปะและวัฒนธรรม"),
 		item("sport", "ประธานฝ่ายกีฬา"),
 	],
+	// positionNames: {
+	// 	president: "นายกสโมสร",
+	// 	"vice-president-1": "อุปนายกคนที่ 1",
+	// 	"vice-president-2": "อุปนายกคนที่ 2",
+	// 	secretary: "เลขานุการ",
+	// 	treasurer: "เหรัญญิก",
+	// 	"student-relations": "ประธานฝ่ายนิสิตสัมพันธ์",
+	// 	academic: "ประธานฝ่ายวิชาการ",
+	// 	"public-service": "ประธานฝ่ายพัฒนาสังคมและบำเพ็ญประโยชน์",
+	// 	art: "ประธานฝ่ายศิลปะและวัฒนธรรม",
+	// 	sport: "ประธานฝ่ายกีฬา",
+	// } as const,
 };

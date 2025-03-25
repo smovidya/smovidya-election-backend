@@ -1,18 +1,18 @@
-import Elysia, { t } from "elysia";
+import Elysia, { error, t } from "elysia";
+import {
+	AuthForbiddenError,
+	AuthUnauthorizedError,
+	auth,
+} from "../../lib/auth";
 import {
 	apiError,
 	apiInternalError,
 	apiOk,
 	mergeUnionEnum,
 } from "../../lib/schema";
-import {
-	AuthForbiddenError,
-	AuthUnauthorizedError,
-	auth,
-} from "../../lib/auth";
 import { currentTime } from "../../lib/time";
-import { Vote } from "./schema";
-import { ElectionService, VoteError } from "./service";
+import { ElectionResult, Vote } from "./schema";
+import { ElectionPeriodError, ElectionService, VoteError } from "./service";
 
 export const electionRoutes = new Elysia({ aot: false })
 	.use(auth())
@@ -221,6 +221,34 @@ export const electionRoutes = new Elysia({ aot: false })
 						}),
 					}),
 				),
+				500: apiInternalError(),
+			},
+		},
+	)
+	.get(
+		"/api/election-result",
+		async ({ election }) => {
+			const result = await election.getElectionResults();
+			if (result.isErr()) {
+				return error(500, {
+					success: false,
+					error: result.error,
+				});
+			}
+
+			return {
+				success: true,
+				result,
+			};
+		},
+		{
+			response: {
+				200: apiOk(
+					t.Object({
+						result: ElectionResult,
+					}),
+				),
+				403: apiError(ElectionPeriodError),
 				500: apiInternalError(),
 			},
 		},

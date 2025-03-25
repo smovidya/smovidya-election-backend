@@ -12,10 +12,11 @@
       "database_id": "fbb23f82-4feb-4bfa-8208-98cc7a6bb8f2"
     }
   ],
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "vars": {
+    // TODO: Replace this when deploying to production
     "ENVIRONMENT": "dev",
   },
   "env": {

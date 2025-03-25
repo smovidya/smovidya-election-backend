@@ -1,69 +1,53 @@
+import { type ElysiaSwaggerConfig, swagger } from "@elysiajs/swagger";
 import { env } from "cloudflare:workers";
-import { swaggerUI } from "@hono/swagger-ui";
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { apiReference } from "@scalar/hono-api-reference";
+import { Elysia } from "elysia";
+import { devRoutes } from "./routes/dev/route";
+import { electionRoutes } from "./routes/election/route";
 
-import { API_PROD_URL } from "./constants";
-
-// Routes
-import { devRoutes } from "./routes/dev.route";
-import { electionRoutes } from "./routes/election.route";
-
-const app = new OpenAPIHono<{ Bindings: Env }>();
-
-app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
-	type: "http",
-	scheme: "bearer",
-	bearerFormat: "JWT",
-	description: "Google ID Token from Firebase Authentication",
-	in: "header",
-});
-
-// Test only
-if (env.ENVIRONMENT === "dev") {
-	app.openAPIRegistry.registerComponent("securitySchemes", "Basic", {
-		type: "http",
-		scheme: "basic",
-		description:
-			"[TEST MODE ONLY - DO NOT USE IN PRODUCTION] Basic Auth where `username` is mock student ID and `password` (optional) is mock date/time in that parsable by JS's Date()",
-		in: "header",
-	});
-}
-
-app
-	.route("/api", electionRoutes)
-	.doc("/spec.json", (c) => ({
-		openapi: "3.0.0",
-		info: {
-			version: "v1",
-			title: "SMO Vidya Election API",
-			contact: {
-				name: "SMO Vidya Election Backend Team",
-				url: "https://github.com/smovidya/smovidya-election-backend",
+const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
+	return {
+		path: "/reference",
+		exclude: ["/dev"],
+		documentation: {
+			info: {
+				version: "2568",
+				title: "SMO Vidya Election API",
+				contact: {
+					name: "SMO Vidya Election Backend Team",
+					url: "https://github.com/smovidya/smovidya-election-backend",
+				},
+			},
+			security: [{ bearerAuth: [] }],
+			components: {
+				securitySchemes: {
+					bearer: {
+						type: "http",
+						scheme: "bearer",
+						bearerFormat: "JWT",
+						description: "Google ID Token from Firebase Authentication",
+					},
+					...(env.ENVIRONMENT === "dev" && {
+						basic: {
+							type: "http",
+							scheme: "basic",
+							description:
+								"[TEST MODE ONLY] Basic Auth where `username` is mock student ID and `password` (optional) is mock current date/time in that parsable by JS's Date()",
+						},
+					}),
+				},
 			},
 		},
-		security: [{ bearerAuth: [] }],
-		servers: [
-			{
-				url: new URL(c.req.url).origin,
-				description: "Current environment",
-			},
-			{
-				url: API_PROD_URL,
-				description: "Production environment",
-			},
-		],
-	}))
-	.get("/swagger", swaggerUI({ url: "/spec.json" }))
-	.get(
-		"/reference",
-		apiReference({
-			url: "/spec.json",
-		}),
-	);
+	};
+};
+
+const app = new Elysia({
+	aot: false,
+})
+	.use(swagger(swaggerOptions()))
+	.use(electionRoutes);
 
 if (env.ENVIRONMENT === "dev") {
-	app.route("/dev", devRoutes);
+	app.mount("/dev", devRoutes);
 }
 
 export default app;

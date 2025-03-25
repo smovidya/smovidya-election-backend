@@ -16,6 +16,7 @@
     "nodejs_compat"
   ],
   "vars": {
+    // TODO: Replace this when deploying to production
     "ENVIRONMENT": "dev",
   },
   "env": {

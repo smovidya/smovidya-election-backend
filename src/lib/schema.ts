@@ -63,8 +63,8 @@ export function apiOk<T extends TObject>(
 	options?: ObjectOptions,
 ) {
 	if (dataSchema) {
-		return t.Intersect(
-			// t.Intersect is like typescript `&` operator
+		return t.Composite(
+			// t.Composite is like typescript `&` operator
 			[
 				t.Object({
 					success: t.Literal(true, {

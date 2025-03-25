@@ -25,7 +25,7 @@ export const AuthError = t.UnionEnum([
 export type AuthError = Static<typeof AuthError>;
 
 export class AuthService {
-	async authenticate(idToken: string): Promise<Result<User, AuthError>> {
+	async authenticate(idToken: string) {
 		const auth = Auth.getOrInitialize(
 			env.FIREBASE_PROJECT_ID,
 			new NoKVStore(),
@@ -37,6 +37,7 @@ export class AuthService {
 			auth.verifyIdToken(idToken),
 			() => [],
 		);
+
 		if (token.isErr()) {
 			return err("invalid-token");
 		}
@@ -52,6 +53,15 @@ export class AuthService {
 			return err("not-chula");
 		}
 
+		const rightVerifyResult = await this.verifyRight(studentId);
+		if (rightVerifyResult.isErr()) {
+			return rightVerifyResult;
+		}
+
+		return ok({ studentId });
+	}
+
+	async verifyRight(studentId: string) {
 		if (studentId.length !== 10) {
 			return err("invalid-student-id");
 		}
@@ -61,6 +71,6 @@ export class AuthService {
 			return err("not-science-student");
 		}
 
-		return ok({ studentId });
+		return ok();
 	}
 }

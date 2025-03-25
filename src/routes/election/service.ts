@@ -34,8 +34,13 @@ export class ElectionService {
 
 		return ok();
 	}
-	announcementPeriodChecker() {
-		const now = new Date();
+
+	announcementPeriodChecker({ currentTime }: { currentTime?: Date }) {
+		const now = currentTime || new Date();
+		if (now < electionInfo.voteStart) {
+			return err("election-not-started");
+		}
+
 		if (now < electionInfo.voteEnd) {
 			return err("election-not-ended");
 		}

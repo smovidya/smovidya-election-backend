@@ -22,9 +22,13 @@ export const currentTime = () =>
 
 				// early return???
 				if (time) {
-					return {
-						currentTime: new Date(time.join(":")),
-					};
+					const date = new Date(time.join(":"));
+					if (!Number.isNaN(date.valueOf())) {
+						// sometime we will get an invalid date
+						return {
+							currentTime: date,
+						};
+					}
 				}
 			}
 		}

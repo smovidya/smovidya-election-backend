@@ -45,7 +45,7 @@ export function apiError<T extends TSchema>(
 			success: t.Literal(false, {
 				description: "Whether the operation is succeed",
 				title: "Success",
-				examples: [false], 
+				examples: [false],
 				// bug???
 				// this will decay from literal value `false` to `Boolean`
 			}),
@@ -97,7 +97,12 @@ export function apiOk<T extends TObject>(
  * @returns A typed object schema for an internal server error response with `success: false` and `error: "internal-error"`
  */
 export function apiInternalError() {
-	return apiError(t.Literal("internal-error"), {
-		description: "Internal server error",
-	});
+	return apiError(
+		t.Literal("internal-error", {
+			examples: ["internal-error"],
+		}),
+		{
+			description: "Internal server error",
+		},
+	);
 }

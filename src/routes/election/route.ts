@@ -235,7 +235,15 @@ export const electionRoutes = new Elysia({ aot: false })
 	)
 	.get(
 		"/api/election-result",
-		async ({ election }) => {
+		async ({ election, currentTime }) => {
+			const availabilty = election.announcementPeriodChecker({ currentTime });
+			console.log(currentTime)
+			if (availabilty.isErr()) {
+				return error(403, {
+					success: false,
+					error: availabilty.error,
+				});
+			}
 			const result = await election.getElectionResults();
 			if (result.isErr()) {
 				return error(500, {

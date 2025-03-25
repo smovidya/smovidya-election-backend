@@ -237,7 +237,7 @@ export const electionRoutes = new Elysia({ aot: false })
 		"/api/election-result",
 		async ({ election, currentTime }) => {
 			const availabilty = election.announcementPeriodChecker({ currentTime });
-			console.log(currentTime)
+			console.log(currentTime);
 			if (availabilty.isErr()) {
 				return error(403, {
 					success: false,

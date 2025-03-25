@@ -44,7 +44,7 @@ bun db:excute --local --file=./src/db/seed.sql
 In case you need to interact with the *remote* database, you can use the following command:
 
 ```sh
-bun db:execute --remote --commands "SELECT * FROM votes"
+bun db:execute --remote --command "SELECT * FROM votes"
 ```
 
 `db:execute` is a wrapper around `wrangler d1 execute DB` command. You can use it to run any SQL command on the database.

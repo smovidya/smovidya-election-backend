@@ -48,6 +48,9 @@ export class AuthService {
 			console.log("[DEV] Mock student ID:", studentId);
 			console.log("[DEV] Mock time:", time.join(":") || "now");
 
+			const rightVerifyResult = await this.verifyRight(studentId);
+			if (rightVerifyResult.isErr()) return rightVerifyResult;
+
 			return ok({
 				studentId,
 				currentTime: time ? new Date(time.join(":")) : new Date(),

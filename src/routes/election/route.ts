@@ -27,7 +27,7 @@ export const electionRoutes = new Elysia({ aot: false })
 				if (user.isErr()) {
 					const statusCode =
 						user.error === "missing-authorization" ||
-						user.error === "invalid-token"
+							user.error === "invalid-token"
 							? 401
 							: 403;
 
@@ -114,7 +114,16 @@ export const electionRoutes = new Elysia({ aot: false })
 			)
 			.get(
 				"/api/eligibility",
-				async ({ election, user: { studentId }, error }) => {
+				async ({ election, user: { studentId }, error, auth }) => {
+					const verifyRightToVote = await auth.verifyRight(studentId);
+
+					if (verifyRightToVote.isErr()) {
+						return error(403, {
+							success: false,
+							error: verifyRightToVote.error,
+						});
+					}
+
 					const isVoted = await election.isVoted({ voterId: studentId });
 
 					if (isVoted.isErr()) {

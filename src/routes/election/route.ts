@@ -28,7 +28,6 @@ export const electionRoutes = new Elysia({ aot: false })
 								? 401
 								: 403;
 
-						console.log("early return");
 						return error(statusCode, {
 							success: false,
 							error: user.error,
@@ -249,7 +248,7 @@ export const electionRoutes = new Elysia({ aot: false })
 		"/api/election-result",
 		async ({ election, currentTime }) => {
 			const availabilty = election.announcementPeriodChecker({ currentTime });
-			console.log(currentTime);
+
 			if (availabilty.isErr()) {
 				return error(403, {
 					success: false,

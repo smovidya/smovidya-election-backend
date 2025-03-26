@@ -55,6 +55,9 @@ export class AuthService {
 		}
 
 		const [_, idToken] = this.headers.authorization?.split(" ") ?? [];
+		// if (!idToken) {
+		// 	return err("missing-authorization");
+		// }
 
 		const authResult = await this.getStudentId(idToken);
 
@@ -121,7 +124,12 @@ export class AuthService {
 export const auth = () =>
 	new Elysia({ aot: false, name: "auth" }).derive(
 		{ as: "scoped" },
-		async ({ headers }) => ({
-			auth: new AuthService(headers),
-		}),
+		async ({ headers }) => {
+			const auth = new AuthService(headers);
+			const user = await auth.getUser();
+			return {
+				auth,
+				user,
+			};
+		},
 	);

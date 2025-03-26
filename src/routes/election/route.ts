@@ -15,193 +15,196 @@ import { ElectionResult, Vote } from "./schema";
 import { ElectionPeriodError, ElectionService, VoteError } from "./service";
 
 export const electionRoutes = new Elysia({ aot: false })
-	.use(auth())
 	.use(currentTime())
 	.decorate("election", new ElectionService())
-	.guard({}, (app) =>
-		app
-			// this is the actual gaurd
-			// no type-safety here
-			.derive(async ({ auth, error }) => {
-				const user = await auth.getUser();
-				if (user.isErr()) {
-					const statusCode =
-						user.error === "missing-authorization" ||
+	.group("", (app) =>
+		app.use(auth()).guard(
+			{
+				beforeHandle({ user, error }) {
+					if (user.isErr()) {
+						const statusCode =
+							user.error === "missing-authorization" ||
 							user.error === "invalid-token"
-							? 401
-							: 403;
+								? 401
+								: 403;
 
-					return error(statusCode, {
-						success: false,
-						error: user.error,
-					});
-				}
-
-				return { user: user.value };
-			})
-			.post(
-				"/api/vote",
-				async ({
-					body: { votes },
-					election,
-					user: { studentId },
-					error,
-					currentTime,
-				}) => {
-					const votingPeriodChecker = election.votingPeriodChecker({
-						currentTime,
-					});
-
-					if (votingPeriodChecker.isErr()) {
-						return error(403, {
+						console.log("early return");
+						return error(statusCode, {
 							success: false,
-							error: votingPeriodChecker.error,
+							error: user.error,
 						});
 					}
-
-					const isVoted = await election.isVoted({ voterId: studentId });
-
-					if (isVoted.isErr()) {
-						return error(500, {
-							success: false,
-							error: isVoted.error,
-						});
-					}
-
-					if (isVoted.value.isVoted) {
-						return error(403, {
-							success: false,
-							error: "voted-already",
-						});
-					}
-
-					const voteResult = await election.addVotes({
-						voterId: studentId,
-						votes,
-					});
-
-					if (voteResult.isErr()) {
-						return error(500, {
-							success: false,
-							error: voteResult.error,
-						});
-					}
-
-					return {
-						success: true,
-					};
 				},
-				{
-					body: t.Object({
-						votes: t.Array(Vote),
-					}),
-					detail: {
-						description: "Submit votes from a student",
-					},
-					response: {
-						200: apiOk(undefined, {
-							description: "Vote submission result",
-						}),
-						401: apiError(AuthUnauthorizedError, {
-							description: "Unauthorized",
-						}),
-						403: apiError(mergeUnionEnum(VoteError, AuthForbiddenError), {
-							description: "Forbidden to vote",
-						}),
-						500: apiInternalError(),
-					},
-				},
-			)
-			.get(
-				"/api/eligibility",
-				async ({ election, user: { studentId }, error, auth }) => {
-					const verifyRightToVote = await auth.verifyRight(studentId);
+			},
+			(app) =>
+				app
+					// this is probably elysia and/or typescript issue
+					.resolve(({ user }) => ({ user: user._unsafeUnwrap() }))
+					.post(
+						"/api/vote",
+						async ({
+							body: { votes },
+							election,
+							user: { studentId },
+							error,
+							currentTime,
+						}) => {
+							const votingPeriodChecker = election.votingPeriodChecker({
+								currentTime,
+							});
 
-					if (verifyRightToVote.isErr()) {
-						return error(403, {
-							success: false,
-							error: verifyRightToVote.error,
-						});
-					}
+							if (votingPeriodChecker.isErr()) {
+								return error(403, {
+									success: false,
+									error: votingPeriodChecker.error,
+								});
+							}
 
-					const isVoted = await election.isVoted({ voterId: studentId });
+							const isVoted = await election.isVoted({ voterId: studentId });
 
-					if (isVoted.isErr()) {
-						return error(500, {
-							success: false,
-							error: isVoted.error,
-						});
-					}
+							if (isVoted.isErr()) {
+								return error(500, {
+									success: false,
+									error: isVoted.error,
+								});
+							}
 
-					return {
-						success: true,
-						eligible: !isVoted.value.isVoted,
-						reason: isVoted.value.isVoted ? "voted-already" : undefined,
-					};
-				},
-				{
-					response: {
-						200: apiOk(
-							t.Object({
-								eligible: t.Boolean({
-									description: "Whether the student is eligible to vote or not",
-									title: "Eligibility",
-									examples: [true, false],
+							if (isVoted.value.isVoted) {
+								return error(403, {
+									success: false,
+									error: "voted-already",
+								});
+							}
+
+							const voteResult = await election.addVotes({
+								voterId: studentId,
+								votes,
+							});
+
+							if (voteResult.isErr()) {
+								return error(500, {
+									success: false,
+									error: voteResult.error,
+								});
+							}
+
+							return {
+								success: true,
+							};
+						},
+						{
+							body: t.Object({
+								votes: t.Array(Vote),
+							}),
+							detail: {
+								description: "Submit votes from a student",
+							},
+							response: {
+								200: apiOk(undefined, {
+									description: "Vote submission result",
 								}),
-								reason: t.Optional(
-									t.String({
-										description:
-											"The reason why the student is not eligible to vote",
-										title: "Reason",
+								401: apiError(AuthUnauthorizedError, {
+									description: "Unauthorized",
+								}),
+								403: apiError(mergeUnionEnum(VoteError, AuthForbiddenError), {
+									description: "Forbidden to vote",
+								}),
+								500: apiInternalError(),
+							},
+						},
+					)
+					.get(
+						"/api/eligibility",
+						async ({ election, user: { studentId }, error, auth }) => {
+							const verifyRightToVote = await auth.verifyRight(studentId);
+
+							if (verifyRightToVote.isErr()) {
+								return error(403, {
+									success: false,
+									error: verifyRightToVote.error,
+								});
+							}
+
+							const isVoted = await election.isVoted({ voterId: studentId });
+
+							if (isVoted.isErr()) {
+								return error(500, {
+									success: false,
+									error: isVoted.error,
+								});
+							}
+
+							return {
+								success: true,
+								eligible: !isVoted.value.isVoted,
+								reason: isVoted.value.isVoted ? "voted-already" : undefined,
+							};
+						},
+						{
+							response: {
+								200: apiOk(
+									t.Object({
+										eligible: t.Boolean({
+											description:
+												"Whether the student is eligible to vote or not",
+											title: "Eligibility",
+											examples: [true, false],
+										}),
+										reason: t.Optional(
+											t.String({
+												description:
+													"The reason why the student is not eligible to vote",
+												title: "Reason",
+											}),
+										),
 									}),
 								),
-							}),
-						),
-						401: apiError(AuthUnauthorizedError, {
-							description: "Unauthorized",
-						}),
-						403: apiError(AuthForbiddenError, {
-							description: "Forbidden to access",
-						}),
-						500: apiInternalError(),
-					},
-					detail: {
-						description: "Check if the current student is eligible to vote",
-					},
-				},
-			)
-			.get(
-				"/api/me",
-				({ user: { studentId }, currentTime }) => ({
-					success: true,
-					studentId,
-					currentTime,
-				}),
-				{
-					detail: {
-						description:
-							"Get the current student ID and the current date/time specified by the token",
-					},
-					response: {
-						200: apiOk(
-							t.Object({
-								studentId: t.String({
-									description: "The user's student ID",
+								401: apiError(AuthUnauthorizedError, {
+									description: "Unauthorized",
 								}),
-								currentTime: t.Date({
-									description: "Current timestamp",
+								403: apiError(AuthForbiddenError, {
+									description: "Forbidden to access",
 								}),
-							}),
-						),
-						401: apiError(AuthUnauthorizedError, {
-							description: "Unauthorized",
+								500: apiInternalError(),
+							},
+							detail: {
+								description: "Check if the current student is eligible to vote",
+							},
+						},
+					)
+					.get(
+						"/api/me",
+						({ user: { studentId }, currentTime }) => ({
+							success: true,
+							studentId,
+							currentTime,
 						}),
-						403: apiError(AuthForbiddenError, {
-							description: "Forbidden to access",
-						}),
-					},
-				},
-			),
+						{
+							detail: {
+								description:
+									"Get the current student ID and the current date/time specified by the token",
+							},
+							response: {
+								200: apiOk(
+									t.Object({
+										studentId: t.String({
+											description: "The user's student ID",
+										}),
+										currentTime: t.Date({
+											description: "Current timestamp",
+										}),
+									}),
+								),
+								401: apiError(AuthUnauthorizedError, {
+									description: "Unauthorized",
+								}),
+								403: apiError(AuthForbiddenError, {
+									description: "Forbidden to access",
+								}),
+							},
+						},
+					),
+		),
 	)
 	.get(
 		"/api/voter-count",

@@ -7,7 +7,7 @@ export class ElectionModel {
 		const voteStatements = votes.map((vote) =>
 			env.DB.prepare(
 				"INSERT INTO votes (voterId, candidateId, position) VALUES (?, ?, ?)",
-			).bind(voterId, vote.candidateId, vote.position),
+			).bind(voterId, String(vote.candidateId), vote.position),
 		);
 
 		const result = await ResultAsync.fromPromise(

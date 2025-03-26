@@ -9,14 +9,19 @@
     {
       "binding": "DB",
       "database_name": "smovidya-election-2025",
-      "database_id": "fbb23f82-4feb-4bfa-8208-98cc7a6bb8f2"
+      "database_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     }
   ],
   "compatibility_flags": [
     "nodejs_compat"
   ],
   "vars": {
-    // TODO: Replace this when deploying to production
     "ENVIRONMENT": "dev",
   },
   "env": {
@@ -25,13 +30,11 @@
         "ENVIRONMENT": "production"
       }
     }
-  },
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-    }
-  ],
+  }
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
   // "r2_buckets": [
   //   {
   //     "binding": "MY_BUCKET",
@@ -41,8 +44,4 @@
   // "ai": {
   //   "binding": "AI"
   // },
-  // "observability": {
-  //   "enabled": true,
-  //   "head_sampling_rate": 1
-  // }
 }

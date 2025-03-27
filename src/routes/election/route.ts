@@ -157,6 +157,9 @@ export const electionRoutes = new Elysia({ aot: false })
 											}),
 										),
 									}),
+									{
+										description: "Eligibility check result",
+									},
 								),
 								401: apiError(AuthUnauthorizedError, {
 									description: "Unauthorized",
@@ -193,6 +196,9 @@ export const electionRoutes = new Elysia({ aot: false })
 											description: "Current timestamp",
 										}),
 									}),
+									{
+										description: "Current user information",
+									},
 								),
 								401: apiError(AuthUnauthorizedError, {
 									description: "Unauthorized",
@@ -239,6 +245,9 @@ export const electionRoutes = new Elysia({ aot: false })
 							title: "As of",
 						}),
 					}),
+					{
+						description: "Current voter count",
+					},
 				),
 				500: apiInternalError(),
 			},
@@ -269,11 +278,17 @@ export const electionRoutes = new Elysia({ aot: false })
 			};
 		},
 		{
+			detail: {
+				description: "Get the election result after the election period",
+			},
 			response: {
 				200: apiOk(
 					t.Object({
 						result: ElectionResult,
 					}),
+					{
+						description: "Election result (after the election period)",
+					},
 				),
 				403: apiError(ElectionPeriodError, {
 					description: "Forbidden to access",

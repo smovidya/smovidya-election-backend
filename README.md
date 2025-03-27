@@ -13,7 +13,7 @@ There are two version of API Documentation:
 
 ## Environment Variables
 
-Create a `.env` file in the root of the project with the following content (contact the project owner for the values):
+Create a `.dev.vars` file in the root of the project with the following content (contact the project owner for the values):
 
 ```conf
 FIREBASE_API_KEY=""

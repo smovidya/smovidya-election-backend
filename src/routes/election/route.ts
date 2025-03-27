@@ -13,6 +13,7 @@ import {
 import { currentTime } from "../../lib/time";
 import { ElectionResult, Vote } from "./schema";
 import { ElectionPeriodError, ElectionService, VoteError } from "./service";
+import { electionInfo } from "../../lib/constants";
 
 export const electionRoutes = new Elysia({ aot: false })
 	.use(currentTime())
@@ -93,7 +94,26 @@ export const electionRoutes = new Elysia({ aot: false })
 						},
 						{
 							body: t.Object({
-								votes: t.Array(Vote),
+								votes: t.Array(Vote, {
+									description: "Votes to be submitted",
+									maxItems: electionInfo.positions.length,
+									minItems: electionInfo.positions.length,
+									uniqueItems: true,
+									examples: [
+										[
+											// Create a random vote for each position :P
+											...electionInfo.positions.map((position, i) => ({
+												candidateId:
+													i === 5 && Math.random() > 0.5
+														? "disapprove"
+														: i % 3 === 0
+															? "no-vote"
+															: 6030000023 + i * 100,
+												position: position.const,
+											})),
+										],
+									],
+								}),
 							}),
 							detail: {
 								description: "Submit votes from a student",

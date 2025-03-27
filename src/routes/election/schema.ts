@@ -48,7 +48,10 @@ export type Vote = Static<typeof Vote>;
 // const b: Static<typeof a> = {};
 
 export const ElectionResult = t.Object({
-	totalVotes: t.Number(),
+	totalVotes: t.Number({
+		description: "Total votes casted",
+		examples: [123456],
+	}),
 	votesByPosition: t.Record(Position, t.Record(CandidateId, t.Number()), {
 		description:
 			"A record of position and a record of candidate (including `no-vote` and `disapprove`) and their vote count",

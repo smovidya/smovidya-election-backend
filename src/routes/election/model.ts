@@ -85,7 +85,9 @@ export class ElectionModel {
 	}
 
 	async getTotalVotesCount() {
-		const prepared = env.DB.prepare("SELECT COUNT(*) as total FROM votes");
+		const prepared = env.DB.prepare(
+			"SELECT COUNT(DISTINCT voterId) as total FROM votes",
+		);
 
 		const result = await ResultAsync.fromPromise(prepared.first(), (e) => e);
 

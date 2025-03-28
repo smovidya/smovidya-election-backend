@@ -69,7 +69,9 @@ export const Page = () => {
 	return (
 		<Layout>
 			<UserScript />
-			<h1>Hello Hono!</h1>
+			<h1>
+				Hello <s>Hono</s>Elysia!
+			</h1>
 			<h2> User info </h2>
 			<p id="user-info">loading</p>
 			<button id="sign-in" type="button">

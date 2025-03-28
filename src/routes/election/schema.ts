@@ -1,5 +1,5 @@
 import { type Static, t } from "elysia";
-import { electionInfo } from "../../lib/constants";
+import { electionInfo } from "$lib/constants";
 
 export const Position = t.Union([
 	...electionInfo.positions.map((position) =>

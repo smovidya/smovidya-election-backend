@@ -1,6 +1,6 @@
 import { type Static, t } from "elysia";
 import { err, ok } from "neverthrow";
-import { electionInfo } from "../../lib/constants";
+import { electionInfo } from "$lib/constants";
 import { ElectionModel } from "./model";
 import type { ElectionResult, Vote } from "./schema";
 

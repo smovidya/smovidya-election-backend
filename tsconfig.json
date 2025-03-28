@@ -10,6 +10,14 @@
     ],
     "jsx": "react",
     "jsxFactory": "Html.createElement",
-    "jsxFragmentFactory": "Html.Fragment"
+    "jsxFragmentFactory": "Html.Fragment",
+    "paths": {
+      "$lib": [
+        "./src/lib"
+      ],
+      "$lib/*": [
+        "./src/lib/*"
+      ],
+    }
   },
 }

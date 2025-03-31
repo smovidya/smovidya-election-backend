@@ -9,20 +9,20 @@
     {
       "binding": "DB",
       "database_name": "smovidya-election-2025",
-      "database_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      "database_id": "8f7e6cac-52d0-4174-8046-730d9a93fb8e"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      "id": "02f697962f3543f7ad1851236e2fa548"
     }
   ],
   "compatibility_flags": [
     "nodejs_compat"
   ],
   "vars": {
-    "ENVIRONMENT": "dev",
+    "ENVIRONMENT": "dev"
   },
   "env": {
     "production": {

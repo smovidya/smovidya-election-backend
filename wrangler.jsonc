@@ -8,8 +8,8 @@
     // TODO: Replace with production database_id
     {
       "binding": "DB",
-      "database_name": "smovidya-election-2025",
-      "database_id": "8f7e6cac-52d0-4174-8046-730d9a93fb8e"
+      "database_name": "smovidya-election-2025-dev",
+      "database_id": "1b2edfbf-53f1-4081-8c65-9dd6aa0b496d"
     }
   ],
   "kv_namespaces": [

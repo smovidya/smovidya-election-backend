@@ -3,6 +3,7 @@ import { env } from "cloudflare:workers";
 import { Elysia } from "elysia";
 import { devRoutes } from "./routes/dev/route";
 import { electionRoutes } from "./routes/election/route";
+import cors from "@elysiajs/cors";
 
 const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
 	return {
@@ -43,6 +44,12 @@ const swaggerOptions = (): ElysiaSwaggerConfig<"/reference"> => {
 const app = new Elysia({
 	aot: false,
 })
+	.use(
+		cors({
+			aot: false,
+			origin: env.SITE_URL,
+		}),
+	)
 	.use(swagger(swaggerOptions()))
 	.use(electionRoutes);
 

@@ -13,6 +13,7 @@ class NoKVStore implements KeyStorer {
 
 export const User = t.Object({
 	studentId: t.String(),
+	studentName: t.String(),
 });
 export type User = Static<typeof User>;
 
@@ -53,14 +54,16 @@ export class AuthService {
 
 			return ok({
 				studentId,
+				studentName: `Mock Name (${studentId})`,
 				currentTime: time ? new Date(time.join(":")) : new Date(),
 			});
 		}
 
 		const [_, idToken] = this.headers.authorization?.split(" ") ?? [];
-		// if (!idToken) {
-		// 	return err("missing-authorization");
-		// }
+
+		if (!idToken) {
+			return err("missing-authorization");
+		}
 
 		const authResult = await this.getStudentId(idToken);
 
@@ -70,6 +73,7 @@ export class AuthService {
 
 		return ok({
 			studentId: authResult.value.studentId,
+			studentName: authResult.value.name,
 			currentTime: new Date(),
 		});
 	}
@@ -91,7 +95,7 @@ export class AuthService {
 			return err("invalid-token");
 		}
 
-		const { email } = token.value;
+		const { email, name } = token.value;
 		if (!email) {
 			// wtf did you use to sign in
 			return err("invalid-token");
@@ -107,7 +111,7 @@ export class AuthService {
 			return rightVerifyResult;
 		}
 
-		return ok({ studentId });
+		return ok({ studentId, name });
 	}
 
 	async verifyRight(studentId: string) {

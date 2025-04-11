@@ -187,9 +187,10 @@ export const electionRoutes = new Elysia({ aot: false })
 					)
 					.get(
 						"/api/me",
-						({ user: { studentId }, currentTime }) => ({
+						({ user: { studentId, studentName }, currentTime }) => ({
 							success: true,
 							studentId,
+							studentName,
 							currentTime,
 						}),
 						{
@@ -202,6 +203,9 @@ export const electionRoutes = new Elysia({ aot: false })
 									t.Object({
 										studentId: t.String({
 											description: "The user's student ID",
+										}),
+										studentName: t.String({
+											description: "The user's student name from Google OAuth",
 										}),
 										currentTime: t.Date({
 											description: "Current timestamp",

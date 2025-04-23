@@ -118,9 +118,10 @@ export class ElectionService {
 		}
 
 		const task = await this.model.setCachedElectionResult(result);
-		if (task.isErr()) {
-			return err(task.error);
-		}
+		// this is not critical, we should ignore this
+		// if (task.isErr()) {
+		// return err(task.error);
+		// }
 
 		return ok(result);
 	}

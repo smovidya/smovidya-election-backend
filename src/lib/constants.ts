@@ -20,7 +20,7 @@ export const electionInfo = {
 
 	// The end date and time of the election.
 	// ปิดโหวต 23 เมษายน 2568 เวลา 17:00 น. (valid included 17:00:00)
-	voteEnd: new Date("2025-04-23T17:00:00+07:00"),
+	voteEnd: new Date("2025-04-23T18:00:00+07:00"),
 
 	// Announcement date and time of the election results.
 	// ประกาศผล 27 เมษายน 2568 เวลา 00:00 น.

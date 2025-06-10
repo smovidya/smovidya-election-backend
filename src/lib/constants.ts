@@ -13,6 +13,7 @@ function item<const Value extends string, const Description extends string>(
 export const API_PROD_URL =
 	"https://api-smovidya-election.bunyawatapp37204.workers.dev";
 
+
 export const electionInfo = {
 	// The start date and time of the election.
 	// เปิดโหวต 23 เมษายน 2568 เวลา 07:00 น. (valid included 07:00:00)

@@ -16,16 +16,16 @@ export const API_PROD_URL =
 
 export const electionInfo = {
 	// The start date and time of the election.
-	// เปิดโหวต 23 เมษายน 2568 เวลา 07:00 น. (valid included 07:00:00)
-	voteStart: new Date("2025-06-10T07:00:00+07:00"),
+	// เปิดโหวต 11 มิถุนายน 2568 เวลา 07:00 น. (valid included 07:00:00)
+	voteStart: new Date("2025-06-11T07:00:00+07:00"),
 
 	// The end date and time of the election.
-	// ปิดโหวต 23 เมษายน 2568 เวลา 17:00 น. (valid included 17:00:00)
-	voteEnd: new Date("2025-06-11T18:00:00+07:00"),
+	// ปิดโหวต 11 มิถุนายน 2568 เวลา 17:00 น. (valid included 17:00:00)
+	voteEnd: new Date("2025-06-11T17:00:00+07:00"),
 
 	// Announcement date and time of the election results.
-	// ประกาศผล 27 เมษายน 2568 เวลา 00:00 น.
-	resultAnnouncement: new Date("2025-06-12T00:00:00+07:00"),
+	// ประกาศผล 11 มิถุนายน 2568 เวลา 18:00 น.
+	resultAnnouncement: new Date("2025-06-11T18:00:00+07:00"),
 
 	// The valid positions that the candidates can run for.
 	positions: [
